@@ -1,6 +1,6 @@
 from classes import Timeslot , Activity, ScoutGroup, priority, AssigningActivititesProblem
 
-import datetime, json
+import datetime, json, os
 
 from utilities import readAndTranslateJsonActivityRefs
 
@@ -164,8 +164,15 @@ def optimizemodel(m, u):
 from mip import *
 model = Model()
 
-translatedfile="C:\\Optimization\opti_scout\optiscout\\jsonreftranslated.json "
-readAndTranslateJsonActivityRefs("C:\\Optimization\opti_scout\optiscout\\testdata_ref.json", translatedfile)
+#change path to where ever the python file is
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+currpath=os.getcwd()
+print ("we are now in: ",currpath)
+
+translatedfile=r".\data\jsonreftranslated.json"
+readAndTranslateJsonActivityRefs(r".\data\testdata_ref.json", translatedfile)
 
 #read the model data
 inputfile = open(translatedfile, "r")

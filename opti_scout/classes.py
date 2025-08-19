@@ -1,3 +1,4 @@
+import json
 from pydantic import BaseModel
 
 from datetime import datetime
@@ -128,12 +129,24 @@ class ScoutGroup(BaseModel):
     # maybe add check that no timeslots overlap
 
 
-class Parameters(BaseModel):
-    parm1: float
-    parm2: int
-
-
 class AssigningActivititesProblem(BaseModel):
     activities: list[Activity]
     scoutgroups: list[ScoutGroup]
-    parameters: Parameters
+
+    @classmethod
+    def from_json(cls, file_name: str) -> "AssigningActivititesProblem":
+        with open(file_name, "r") as file:
+            data = json.load(file)
+
+        # Create named directory of activities
+        acts = {}
+        for i in data["activities"]:
+            acts[i["identifier"]] = i
+
+        for i in data["scoutgroups"]:
+            print(i["identifier"])
+            for p in i["priorities"]:
+                print(p["activity"])
+                p["activity"] = acts[p["activity"]]
+
+        return cls(**data)

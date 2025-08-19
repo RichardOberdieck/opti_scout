@@ -1,7 +1,6 @@
 from classes import AssigningActivititesProblem
 from pydantic import BaseModel
 from mip import BINARY, xsum, Model, maximize, OptimizationStatus, Var
-import json
 
 
 class ModelBuilder(BaseModel):
@@ -11,8 +10,8 @@ class ModelBuilder(BaseModel):
     @classmethod
     def create(cls, assigning_activities_problem: AssigningActivititesProblem) -> "ModelBuilder":
         return cls(assigning_activities_problem=assigning_activities_problem, model=Model())
-    
-    def solve(self) -> Solution:
+
+    def solve(self):
         x = self.generate_variables()
 
         self.add_maxscout_constraint(x)
@@ -104,7 +103,12 @@ class ModelBuilder(BaseModel):
                     # group cannot attend session until we have found that this session is within the available times for the group
                     if g.InAvailableTimeslots(s) is False:
                         name = (
-                            "groupDoesNotHaveAvailabletime_" + g.identifier + "_" + a.identifier + "_start" + s.startname()
+                            "groupDoesNotHaveAvailabletime_"
+                            + g.identifier
+                            + "_"
+                            + a.identifier
+                            + "_start"
+                            + s.startname()
                         )
                         print("False session InAvailableTimeslot genereate constraint: ", name)
                         # store list of vars set to 0 as they are in unavailable times for the group
@@ -114,7 +118,6 @@ class ModelBuilder(BaseModel):
                     else:
                         print("True session InAvailableTimeslot no consgtraint needed")
         return u
-
 
     # find all activities where age does not match and force these to zero
     def add_age_constraint(self, x: dict[tuple, Var], unavailable: list[tuple]) -> list[tuple]:

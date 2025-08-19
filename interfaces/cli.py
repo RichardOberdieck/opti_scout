@@ -1,4 +1,3 @@
-import json
 import click
 
 from opti_scout.build_model import ModelBuilder

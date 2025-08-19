@@ -2,7 +2,7 @@ from classes import Timeslot , Activity, ScoutGroup, priority, AssigningActiviti
 
 import datetime, json, os
 
-from utilities import readAndTranslateJsonActivityRefs
+from utilities import read_and_translate_json_activity_refs
 
 
 
@@ -172,7 +172,7 @@ currpath=os.getcwd()
 print ("we are now in: ",currpath)
 
 translatedfile=r".\data\jsonreftranslated.json"
-readAndTranslateJsonActivityRefs(r".\data\testdata_ref.json", translatedfile)
+read_and_translate_json_activity_refs(r".\data\testdata_ref.json", translatedfile)
 
 #read the model data
 inputfile = open(translatedfile, "r")

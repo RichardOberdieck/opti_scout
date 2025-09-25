@@ -1,5 +1,5 @@
 import json
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 
 from datetime import datetime
 
@@ -90,26 +90,12 @@ class Activity(BaseModel):
     # maybe add check that no timeslots overlap
 
 
-class priority(BaseModel):
-    activity: Activity
-    value: int
-
-    def __eq__(self, other):
-        return self.Activity == other.Activity and self.value == other.value
-
-    def __hash__(self):
-        return hash(self.value)
-
-    # no activities must have the same priority for a scoutgroup
-
-
 class ScoutGroup(BaseModel):
     name: str
     identifier: str
     agegroup: int
     size: int
     available_timeslots: set[Timeslot]
-    priorities: set[priority]
 
     def __eq__(self, other):
         return self.identifier == other.identifier
@@ -117,10 +103,10 @@ class ScoutGroup(BaseModel):
     def __str__(self):
         return self.name + "(id:" + self.identifier + ")"
 
-    def hasActivity(self, activity):
-        return any(activity == p.activity for p in self.priorities)
+    def __hash__(self):
+        return hash(self.identifier)
 
-    def InAvailableTimeslots(self, timeslot):
+    def in_available_timeslots(self, timeslot):
         for t in self.available_timeslots:
             if t.contains(timeslot):
                 return True
@@ -129,9 +115,26 @@ class ScoutGroup(BaseModel):
     # maybe add check that no timeslots overlap
 
 
+class Selection(BaseModel):
+    scout_group: ScoutGroup
+    activity: Activity
+    time_slot: Timeslot
+    priority: int
+
+    def __str__(self):
+        return self.scout_group.identifier + "_" + self.activity.identifier + "_start" + self.time_slot.startname()
+
+    def __hash__(self):
+        return hash(self.scout_group) + 3*hash(self.activity) + 5*hash(self.time_slot) + 9*hash(self.priority)
+
+list_activities_adapter = TypeAdapter(list[Activity])
+list_scout_group_adapter = TypeAdapter(list[ScoutGroup])
+
+
 class AssigningActivititesProblem(BaseModel):
     activities: list[Activity]
     scoutgroups: list[ScoutGroup]
+    selections: set[Selection]
 
     @classmethod
     def from_json(cls, file_name: str) -> "AssigningActivititesProblem":
@@ -143,10 +146,26 @@ class AssigningActivititesProblem(BaseModel):
         for i in data["activities"]:
             acts[i["identifier"]] = i
 
+        priorities = {}
         for i in data["scoutgroups"]:
-            print(i["identifier"])
             for p in i["priorities"]:
-                print(p["activity"])
-                p["activity"] = acts[p["activity"]]
+                priorities[i["identifier"]+p["activity"]] = p["value"]
+
+        list_activities = list_activities_adapter.validate_python(data["activities"])
+        list_scout_groups = list_scout_group_adapter.validate_python(data["scoutgroups"])
+
+        selections = []
+        for scout_group in list_scout_groups:
+            for activity in list_activities:
+                if scout_group.identifier + activity.identifier in priorities:
+                    for time_slot in activity.available_sessions:
+                        selections.append(
+                            Selection(scout_group=scout_group, activity=activity, time_slot=time_slot, priority=priorities[scout_group.identifier + activity.identifier])
+                        )
+
+        data["selections"] = selections
 
         return cls(**data)
+
+    def get_selections_for_activity(self, activity: Activity, time_slot: Timeslot) -> set[Selection]:
+        return {s for s in self.selections if s.scout_group.hasActivity(activity) and time_slot == s.time_slot}

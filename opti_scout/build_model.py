@@ -1,9 +1,9 @@
-from classes import AssigningActivititesProblem
+from opti_scout.classes import AssigningActivititesProblem
 from pydantic import BaseModel
 from mip import BINARY, xsum, Model, maximize, OptimizationStatus, Var
 
 
-class ModelBuilder(BaseModel):
+class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
     assigning_activities_problem: AssigningActivititesProblem
     model: Model
 
@@ -23,32 +23,19 @@ class ModelBuilder(BaseModel):
 
         self.add_objective(x)
 
-        return optimizemodel(self.model, unavailable)
+        return optimize_model(self.model, unavailable)
 
     def generate_variables(self) -> dict[tuple, Var]:
         print("Generate variables")
-        x = {}
-        for g in self.assigning_activities_problem.scoutgroups:
-            for p in g.priorities:
-                activity = p.activity
-                for s in activity.available_sessions:
-                    x[(g.identifier, activity.identifier, s.startname())] = self.model.add_var(
-                        var_type=BINARY, name=g.identifier + "_" + activity.identifier + "_start" + s.startname()
-                    )
-                    print(x[(g.identifier, activity.identifier, s.startname())])
+        x = {s: self.model.add_var(var_type=BINARY, name=str(s)) for s in self.assigning_activities_problem.selections}
         print("Variable generated:", len(x))
-        print(x)
         return x
 
     # any session of an activity cannot have more than the max number of participants
     def add_maxscout_constraint(self, x: dict[tuple, Var]) -> None:
         for a in self.assigning_activities_problem.activities:
             for s in a.available_sessions:
-                lhs = []
-                for g in self.assigning_activities_problem.scoutgroups:
-                    if g.hasActivity(a):
-                        lhs.append(g.size * x[(g.identifier, a.identifier, s.startname())])
-                self.model += xsum(lhs) <= a.max_participants
+                self.model += xsum(s.scout_group.size*x[s] for s in self.assigning_activities_problem.get_selections_for_activity(a, s)) <= a.max_participants
 
     # one group gets at most one session from any activity
     def add_max_1_session_constraint(self, x: dict[tuple, Var]) -> None:
@@ -191,7 +178,7 @@ class ModelBuilder(BaseModel):
 
 
 # run the model optimization and report the solution
-def optimizemodel(model: Model, unavailable: list[tuple]) -> None:
+def optimize_model(model: Model, unavailable: list[tuple]) -> None:
     status = model.optimize(max_seconds=300)
     print(status)
     if status == OptimizationStatus.OPTIMAL or status == OptimizationStatus.FEASIBLE:

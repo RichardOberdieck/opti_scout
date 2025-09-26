@@ -12,3 +12,11 @@ def model_builder(assigning_activities_problem: AssigningActivititesProblem) -> 
 def test_generate_variables(model_builder: ModelBuilder):
     # Act
     x = model_builder.generate_variables()
+
+    # Assert
+    assert 26 == len(x)
+
+
+def test_solve(model_builder: ModelBuilder):
+    # Act
+    model_builder.solve()

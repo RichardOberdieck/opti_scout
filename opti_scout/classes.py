@@ -8,7 +8,7 @@ class Timeslot(BaseModel):
     start: datetime
     end: datetime
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def start_before_end(self):
         if self.start >= self.end:
             raise ValueError("Start time has to be before the end time")
@@ -31,7 +31,9 @@ class Timeslot(BaseModel):
 
     def is_same_day(self, other: "Timeslot") -> bool:
         # TODO: are there multi-day activities, where we have to do contains-style things??
-        return (self.start.date() in [other.start.date(), other.end.date()]) or (self.end.date() in [other.start.date(), other.end.date()])
+        return (self.start.date() in [other.start.date(), other.end.date()]) or (
+            self.end.date() in [other.start.date(), other.end.date()]
+        )
 
 
 class Activity(BaseModel):
@@ -42,7 +44,7 @@ class Activity(BaseModel):
     available_sessions: set[Timeslot]
     out_of_camp: bool
 
-    @field_validator('available_sessions', mode='after')
+    @field_validator("available_sessions", mode="after")
     @classmethod
     def ensure_sessions_do_not_overlap(cls, sessions: set[Timeslot]) -> set[Timeslot]:
         for s in sessions:
@@ -59,7 +61,7 @@ class Activity(BaseModel):
 
     def __hash__(self):
         return hash(self.identifier)
-    
+
 
 class ScoutGroup(BaseModel):
     name: str
@@ -94,7 +96,8 @@ class Selection(BaseModel):
         return self.scout_group.identifier + "_" + self.activity.identifier + "_start" + self.time_slot.startname()
 
     def __hash__(self):
-        return hash(self.scout_group) + 3*hash(self.activity) + 5*hash(self.time_slot) + 9*hash(self.priority)
+        return hash(self.scout_group) + 3 * hash(self.activity) + 5 * hash(self.time_slot) + 9 * hash(self.priority)
+
 
 list_activities_adapter = TypeAdapter(list[Activity])
 list_scout_group_adapter = TypeAdapter(list[ScoutGroup])
@@ -118,7 +121,7 @@ class AssigningActivititesProblem(BaseModel):
         priorities = {}
         for i in data["scoutgroups"]:
             for p in i["priorities"]:
-                priorities[i["identifier"]+p["activity"]] = p["value"]
+                priorities[i["identifier"] + p["activity"]] = p["value"]
 
         list_activities = list_activities_adapter.validate_python(data["activities"])
         list_scout_groups = list_scout_group_adapter.validate_python(data["scoutgroups"])
@@ -129,7 +132,12 @@ class AssigningActivititesProblem(BaseModel):
                 if scout_group.identifier + activity.identifier in priorities:
                     for time_slot in activity.available_sessions:
                         selections.append(
-                            Selection(scout_group=scout_group, activity=activity, time_slot=time_slot, priority=priorities[scout_group.identifier + activity.identifier])
+                            Selection(
+                                scout_group=scout_group,
+                                activity=activity,
+                                time_slot=time_slot,
+                                priority=priorities[scout_group.identifier + activity.identifier],
+                            )
                         )
 
         data["selections"] = selections
@@ -138,7 +146,7 @@ class AssigningActivititesProblem(BaseModel):
 
     def get_selections_for_activity(self, activity: Activity, time_slot: Timeslot) -> set[Selection]:
         return {s for s in self.selections if s.activity == activity and time_slot == s.time_slot}
-    
+
     def get_overlapping_selections(self, selection: Selection) -> list[Selection]:
         overlaps = []
         for s in self.selections:
@@ -152,7 +160,7 @@ class AssigningActivititesProblem(BaseModel):
                 overlaps.append(s)
 
         return overlaps
-    
+
     def get_all_selections_on_same_day_but_different_activities(self, selection: Selection) -> list[Selection]:
         selections = []
         for s in self.selections:
@@ -164,5 +172,5 @@ class AssigningActivititesProblem(BaseModel):
 
             if selection.time_slot.is_same_day(s.time_slot):
                 selections.append(s)
-        
+
         return selections

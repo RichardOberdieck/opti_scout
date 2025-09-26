@@ -101,7 +101,7 @@ def test_get_overlapping_selections(timeslots):
         identifier="A1",
         allowed_age_groups={10, 11, 12},
         max_participants=20,
-        available_sessions=set(timeslots),
+        available_sessions=set([timeslots[0]]),
         out_of_camp=False
     )
     activity2 = Activity(

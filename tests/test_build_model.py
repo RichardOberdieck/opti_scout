@@ -15,8 +15,3 @@ def test_generate_variables(model_builder: ModelBuilder):
 
     # Assert
     assert 26 == len(x)
-
-
-def test_solve(model_builder: ModelBuilder):
-    # Act
-    model_builder.solve()

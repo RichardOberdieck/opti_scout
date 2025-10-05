@@ -31,6 +31,9 @@ class Timeslot(BaseModel):
     def overlaps(self, other):
         return self.start < other.end and self.end > other.start
 
+    def contains(self, other: "Timeslot") -> bool:
+        return self.start <= other.start and self.end >= other.end
+
     def is_same_day(self, other: "Timeslot") -> bool:
         # TODO: are there multi-day activities, where we have to do contains-style things??
         return (self.start.date() in [other.start.date(), other.end.date()]) or (

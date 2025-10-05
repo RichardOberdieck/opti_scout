@@ -36,7 +36,11 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
     def add_maxscout_constraint(self, x: dict[tuple, Var]) -> None:
         for a in self.assigning_activities_problem.activities:
             for session in a.available_sessions:
-                selections = {s for s in self.selections if s.activity == a and session == s.time_slot}
+                selections = {
+                    s
+                    for s in self.assigning_activities_problem.selections
+                    if s.activity == a and session == s.time_slot
+                }
                 self.model += xsum(s.scout_group.size * x[s] for s in selections) <= a.max_participants
 
     # one group gets at most one session from any activity
@@ -73,7 +77,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             )
 
     # find all activities where age does not match and force these to zero
-    def add_age_constraint(self, x: dict[tuple, Var], unavailable: list[tuple]) -> list[tuple]:
+    def add_age_constraint(self, x: dict[tuple, Var]) -> list[tuple]:
         for s in self.assigning_activities_problem.selections:
             if s.scout_group.agegroup in s.activity.allowed_age_groups:
                 continue

@@ -74,6 +74,18 @@ def test_generate_variables(assigning_activities_problem: AssigningActivititesPr
     assert 26 == len(x)
 
 
+def test_run_defined_example(assigning_activities_problem: AssigningActivititesProblem):
+    # Arrange
+    model_builder = ModelBuilder.create(assigning_activities_problem)
+
+    # Act
+    solution = model_builder.solve()
+
+    # Assert
+    # @@@ TODO: Add proper checks from previous iterations
+    assert solution is not None
+
+
 @given(problem=assigning_activities_problem_strategy())
 @settings(deadline=None)
 def test_age_limit_respected(problem: AssigningActivititesProblem):

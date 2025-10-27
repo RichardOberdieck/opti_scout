@@ -62,7 +62,7 @@ class Activity(BaseModel):
         return self.identifier == other.identifier
 
     def __str__(self):
-        return self.name + "(id:" + self.identifier + "," + self.location + ")"
+        return self.name + "(id:" + self.identifier + ")"
 
     def __hash__(self):
         return hash(self.identifier)

@@ -50,9 +50,6 @@ include = [
 ]
 
 [project.optional-dependencies]
-app = [
-  "streamlit"
-]
 cli = [
   "click"
 ]
@@ -80,14 +77,8 @@ performance = "python tests/performance.py"
 [[tool.hatch.envs.test.matrix]]
 python = ["3.11", "3.12", "3.13"]
 
-[tool.hatch.envs.app]
-dependencies = ["opti_scout[app]"]
-
-[tool.hatch.envs.app.scripts]
-run = "streamlit run interfaces/app.py"
-
 [tool.hatch.envs.cli]
-dependencies = ["opti_scout[app]"]
+dependencies = ["opti_scout[cli]"]
 
 [tool.hatch.envs.cli.scripts]
 run = "python -m interfaces.cli {args}"

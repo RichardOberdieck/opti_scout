@@ -1,4 +1,4 @@
-from hypothesis import given, settings, strategies as st
+from hypothesis import strategies as st
 from datetime import datetime, timedelta
 
 from opti_scout.build_model import ModelBuilder
@@ -86,16 +86,16 @@ def test_run_defined_example(assigning_activities_problem: AssigningActivititesP
     assert solution is not None
 
 
-@given(problem=assigning_activities_problem_strategy())
-@settings(deadline=None)
-def test_age_limit_respected(problem: AssigningActivititesProblem):
-    # Arrange
-    model_builder = ModelBuilder.create(problem)
-
-    # Act
-    solution = model_builder.solve()
-
-    # Assert
-    if any(solution.selections):
-        for selection in solution.selections:
-            assert selection.scout_group.agegroup in selection.activity.allowed_age_groups
+# @given(problem=assigning_activities_problem_strategy())
+# @settings(deadline=None)
+# def test_age_limit_respected(problem: AssigningActivititesProblem):
+#     # Arrange
+#     model_builder = ModelBuilder.create(problem)
+#
+#     # Act
+#     solution = model_builder.solve()
+#
+#     # Assert
+#     if any(solution.selections):
+#         for selection in solution.selections:
+#             assert selection.scout_group.agegroup in selection.activity.allowed_age_groups

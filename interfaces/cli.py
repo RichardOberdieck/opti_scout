@@ -11,7 +11,7 @@ def run(input_file: str, output_file: str):
     assigning_activities_problem = AssigningActivititesProblem.from_json(input_file)
     model_builder = ModelBuilder.create(assigning_activities_problem)
     solution = model_builder.solve()
-    if solution is not None:
+    if solution.is_valid():
         with open(output_file, "w") as file:
             file.write(solution.model_dump_json())
 

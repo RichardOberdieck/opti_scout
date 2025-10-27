@@ -1,6 +1,6 @@
-from opti_scout.classes import AssigningActivititesProblem
+from opti_scout.classes import AssigningActivititesProblem, Solution
 from pydantic import BaseModel
-from mip import BINARY, xsum, Model, maximize, OptimizationStatus, Var
+from mip import BINARY, xsum, Model, maximize, Var
 
 
 class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
@@ -11,7 +11,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
     def create(cls, assigning_activities_problem: AssigningActivititesProblem) -> "ModelBuilder":
         return cls(assigning_activities_problem=assigning_activities_problem, model=Model())
 
-    def solve(self):
+    def solve(self) -> Solution:
         x = self.generate_variables()
 
         self.add_maxscout_constraint(x)
@@ -23,7 +23,9 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
 
         self.add_objective(x)
 
-        return self.optimize()
+        status = self.model.optimize(max_seconds=300)
+
+        return Solution.build(x, status)
 
     def generate_variables(self) -> dict[tuple, Var]:
         return {
@@ -34,7 +36,11 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
     def add_maxscout_constraint(self, x: dict[tuple, Var]) -> None:
         for a in self.assigning_activities_problem.activities:
             for session in a.available_sessions:
-                selections = {s for s in self.selections if s.activity == a and session == s.time_slot}
+                selections = {
+                    s
+                    for s in self.assigning_activities_problem.selections
+                    if s.activity == a and session == s.time_slot
+                }
                 self.model += xsum(s.scout_group.size * x[s] for s in selections) <= a.max_participants
 
     # one group gets at most one session from any activity
@@ -47,6 +53,15 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
                 self.model += (
                     xsum(x[s] for s in selections) <= 1,
                     "group_" + g.identifier + "_at_most_1_session_for_activity_" + a.identifier,
+                )
+
+    # any group can at most have 1 session of overlapping sessions across all activities that they have prioritized
+    def add_max_1_of_overlapping_sessions_constraint(self, x: dict[tuple, Var]) -> None:
+        for s in self.assigning_activities_problem.selections:
+            for s1 in self.assigning_activities_problem.get_overlapping_selections(s):
+                self.model += (
+                    x[s] + x[s1] <= 1,
+                    f"overlapping_sessions_{s}_and_{s1}_for_group_{s.scout_group.identifier}",
                 )
 
     # If a session falls outside the groups available hours, then force it to 0
@@ -62,7 +77,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             )
 
     # find all activities where age does not match and force these to zero
-    def add_age_constraint(self, x: dict[tuple, Var], unavailable: list[tuple]) -> list[tuple]:
+    def add_age_constraint(self, x: dict[tuple, Var]) -> list[tuple]:
         for s in self.assigning_activities_problem.selections:
             if s.scout_group.agegroup in s.activity.allowed_age_groups:
                 continue
@@ -85,14 +100,3 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
     # define the objective function
     def add_objective(self, x: dict[tuple, Var]) -> None:
         self.model.objective = maximize(xsum(s.priority * x[s] for s in self.assigning_activities_problem.selections))
-
-    # run the model optimization and report the solution
-    def optimize(self) -> None:
-        status = self.model.optimize(max_seconds=300)
-        print(status)
-        if status not in [OptimizationStatus.OPTIMAL, OptimizationStatus.FEASIBLE]:
-            return None
-
-        print("solution:")
-        for var in self.model.vars:
-            print(f"{var.name}: {var.x}")

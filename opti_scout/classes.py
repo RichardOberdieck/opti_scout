@@ -1,5 +1,7 @@
 import json
 from pydantic import BaseModel, TypeAdapter, field_validator, model_validator
+import pandas as pd
+from mip import OptimizationStatus, Var
 
 from datetime import datetime
 
@@ -29,6 +31,9 @@ class Timeslot(BaseModel):
     def overlaps(self, other):
         return self.start < other.end and self.end > other.start
 
+    def contains(self, other: "Timeslot") -> bool:
+        return self.start <= other.start and self.end >= other.end
+
     def is_same_day(self, other: "Timeslot") -> bool:
         # TODO: are there multi-day activities, where we have to do contains-style things??
         return (self.start.date() in [other.start.date(), other.end.date()]) or (
@@ -57,7 +62,7 @@ class Activity(BaseModel):
         return self.identifier == other.identifier
 
     def __str__(self):
-        return self.name + "(id:" + self.identifier + "," + self.location + ")"
+        return self.name + "(id:" + self.identifier + ")"
 
     def __hash__(self):
         return hash(self.identifier)
@@ -174,3 +179,39 @@ class AssigningActivititesProblem(BaseModel):
                 selections.append(s)
 
         return selections
+
+
+class Solution(BaseModel):
+    selections: set[Selection]
+    status: OptimizationStatus
+
+    @classmethod
+    def build(cls, variables: dict[Selection, Var], status: OptimizationStatus) -> "Solution":
+        if status not in [OptimizationStatus.OPTIMAL, OptimizationStatus.FEASIBLE]:
+            return cls(selections=set(), status=status)
+        print(status)
+
+        print("solution:")
+        selections = []
+        for selection, variable in variables.items():
+            print(f"{variable.name}: {variable.x}")
+            if variable.x > 0.5:
+                selections.append(selection)
+
+        return cls(selections=selections, status=status)
+
+    def is_valid(self) -> bool:
+        return len(self.selections) > 0
+
+    def to_dataframe(self):
+        columns = ["Scout Group", "Activity", "Timeslot"]
+
+        data = [[s.scout_group.identifier, s.activity.identifier, s.time_slot] for s in self.selections]
+        return pd.DataFrame(data=data, columns=columns)
+
+    def to_excel(self, filename: str):
+        df = self.to_dataframe()
+        df.to_excel(filename)
+
+    def create_gantt_chart(self) -> None:
+        pass

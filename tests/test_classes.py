@@ -1,4 +1,4 @@
-from opti_scout.classes import Activity, AssigningActivititesProblem, ScoutGroup, Selection, Timeslot
+from opti_scout.classes import Activity, AssigningActivititesProblem, Group, Selection, Timeslot, ActivityTimeslot
 
 from datetime import datetime
 from pytest import fixture, mark
@@ -11,10 +11,16 @@ def timeslots():
         Timeslot(start=datetime(2025, 9, 25, 9, 30), end=datetime(2025, 9, 25, 16, 0)),
     ]
 
+@fixture
+def activitytimeslots():
+    return [
+        ActivityTimeslot(id="p0001",capacity=300, start=datetime(2025, 9, 25, 9, 0), end=datetime(2025, 9, 25, 10, 0)),
+        ActivityTimeslot(id="p0002",capacity=100,start=datetime(2025, 9, 25, 9, 30), end=datetime(2025, 9, 25, 16, 0)),
+    ]
 
 @fixture
 def assigning_activities_problem():
-    return AssigningActivititesProblem.from_json("tests/data/testdata_ref.json")
+    return AssigningActivititesProblem.from_json("tests/data/tom_full_periodeid.json")
 
 
 @mark.parametrize(
@@ -76,73 +82,107 @@ def test_timeslot_overlap(slot1, slot2, expected):
 
 
 @mark.parametrize(
-    "slot1, slot2, expected",
+    "slot3, slot4, expected",
     [
-        # Is same day
+        # Identical timeslots
         (
-            Timeslot(start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
-            Timeslot(start=datetime(2025, 9, 25, 22), end=datetime(2025, 9, 25, 23)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
+            ActivityTimeslot(id="p0002",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
             True,
         ),
-        # Is definitely not same day
+        # slot3 starts during slot4
         (
-            Timeslot(start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
-            Timeslot(start=datetime(2025, 9, 23, 22), end=datetime(2025, 9, 23, 23)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 11)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 12)),
+            True,
+        ),
+        # slot4 ends during slot3
+        (
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 12)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 11)),
+            True,
+        ),
+        # slot4 fully inside slot3
+        (
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 12)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
+            True,
+        ),
+        # slot3 fully inside slot4
+        (
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 12)),
+            True,
+        ),
+        # Adjacent timeslots (no overlap)
+        (
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
             False,
         ),
-        # End time matches
+        # Completely separate timeslots
         (
-            Timeslot(start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
-            Timeslot(start=datetime(2025, 9, 24, 22), end=datetime(2025, 9, 25, 2)),
-            True,
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 11), end=datetime(2025, 9, 25, 12)),
+            False,
         ),
-        # Start time matches
+        # Overlap across midnight
         (
-            Timeslot(start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
-            Timeslot(start=datetime(2025, 9, 25, 22), end=datetime(2025, 9, 26, 2)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 23), end=datetime(2025, 9, 26, 1)),
+            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 26, 0), end=datetime(2025, 9, 26, 2)),
             True,
-        ),
+        ),        
     ],
 )
-def test_timeslot_is_same_day(slot1, slot2, expected):
-    assert slot1.is_same_day(slot2) == expected
-    assert slot2.is_same_day(slot1) == expected
+
+def test_activitytimeslot_overlap(slot3, slot4, expected):
+    assert slot3.overlaps(slot4) == expected
+    assert slot4.overlaps(slot3) == expected  # symmetry check
 
 
-def test_get_overlapping_selections(timeslots):
+
+def test_get_overlapping_selections(timeslots,activitytimeslots):
     # Create Activities
     activity1 = Activity(
         name="Archery",
-        identifier="A1",
-        allowed_age_groups={10, 11, 12},
-        max_participants=20,
-        available_sessions=set([timeslots[0]]),
-        out_of_camp=False,
+        id="A0001",
+        age_span = {
+				"low": 7,
+				"high": 10
+			},
+        timeslots=set([activitytimeslots[0]]),
+        activity_area="Lejren",
+        in_camp=False,
     )
     activity2 = Activity(
         name="Kayaking",
-        identifier="A2",
-        allowed_age_groups={12, 13, 14},
-        max_participants=15,
-        available_sessions=set([timeslots[1]]),
-        out_of_camp=True,
+        id="A0002",
+        age_span = {
+				"low": 7,
+				"high": 10
+			},
+        timeslots=set([activitytimeslots[1]]),
+        activity_area="Lejren",
+        in_camp=False,
     )
 
     # Create ScoutGroups
-    group1 = ScoutGroup(name="Eagles", identifier="G1", agegroup=12, size=10, available_timeslots=set(timeslots))
-    group2 = ScoutGroup(name="Wolves", identifier="G2", agegroup=13, size=8, available_timeslots=set([timeslots[1]]))
+    group1 = Group(name="Eagles", id="G0001", age_span = {"low": 7,"high": 10}, size=10, available=set(timeslots))
+    group2 = Group(name="Wolves", id="G0002", age_span = {"low": 7,"high": 10}, size=8, available=set([timeslots[1]]))
 
     # Create Selections
-    selection1 = Selection(scout_group=group1, activity=activity1, time_slot=timeslots[0], priority=1)
-    selection1a = Selection(scout_group=group1, activity=activity1, time_slot=timeslots[1], priority=1)
-    selection2 = Selection(scout_group=group1, activity=activity2, time_slot=timeslots[1], priority=2)
-    selection3 = Selection(scout_group=group2, activity=activity2, time_slot=timeslots[1], priority=1)
+    selection1 = Selection(group=group1, activity=activity1, time_slot=activitytimeslots[0], priority=1)
+    selection1a = Selection(group=group1, activity=activity1, time_slot=activitytimeslots[1], priority=1)
+    selection2 = Selection(group=group1, activity=activity2, time_slot=activitytimeslots[1], priority=2)
+    selection3 = Selection(group=group2, activity=activity2, time_slot=activitytimeslots[1], priority=1)
 
     # Act
     problem = AssigningActivititesProblem(
         activities=[activity1, activity2],
-        scoutgroups=[group1, group2],
+        groups=[group1, group2],
         selections=[selection1, selection2, selection3, selection1a],
+        popularactivities=[activity1],
+        
     )
 
     overlapping_selections = problem.get_overlapping_selections(selection1)
@@ -150,6 +190,6 @@ def test_get_overlapping_selections(timeslots):
     # Assert
     assert len(overlapping_selections) == 1
     assert (
-        Selection(scout_group=group1, activity=activity2, time_slot=timeslots[1], priority=2)
+        Selection(group=group1, activity=activity2, time_slot=activitytimeslots[1], priority=2)
         == overlapping_selections.pop()
     )

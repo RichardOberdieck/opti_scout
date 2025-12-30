@@ -4,4 +4,4 @@ from pytest import fixture
 
 @fixture
 def assigning_activities_problem():
-    return AssigningActivititesProblem.from_json("tests/data/testdata_ref.json")
+    return AssigningActivititesProblem.from_json("tests/data/tom_full_periodeid.json")

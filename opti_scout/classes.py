@@ -3,7 +3,7 @@ from pydantic import BaseModel, TypeAdapter, field_validator, model_validator
 import pandas as pd
 from mip import OptimizationStatus, Var
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import Counter
 
 class age_span(BaseModel):
@@ -177,6 +177,19 @@ class AssigningActivititesProblem(BaseModel):
         with open(file_name, "r") as file:
             data = json.load(file)
 
+        #to accomodate travel time add 30 min to each activity session duration and each group available time (to accomodate for longer session)
+        travelminutes=30
+
+        date_format = '%Y-%m-%dT%H:%M:%SZ'
+        for a in data["activities"]:
+            for t in a["timeslots"]:
+               t["end"] = (datetime.strptime(t["end"], date_format) + timedelta(minutes=travelminutes)).strftime(date_format)
+            
+        for g in data["groups"]:
+            for a in g["available"]:
+               a["end"] = (datetime.strptime(a["end"], date_format) + timedelta(minutes=travelminutes)).strftime(date_format)
+
+
         # Create named directory of activities
         acts = {}
         for i in data["activities"]:
@@ -193,17 +206,17 @@ class AssigningActivititesProblem(BaseModel):
                 priocounter=priocounter-1
                 popular.append(a)
         #we could extend this to include ties
-        #add nm most common as input to function from_json
+        #add nb most common as input to function from_json
         most_common = Counter(popular).most_common(2)  
 
-        top_two_activities = [item for item, count in most_common]
+        top_activities = [item for item, count in most_common]
         
         list_activities = list_activities_adapter.validate_python(data["activities"])
         list_groups = list_group_adapter.validate_python(data["groups"])
 
         toppop = []
         for a in list_activities:
-            if a.id in top_two_activities:
+            if a.id in top_activities:
                 toppop.append(a)
 
         data["popularactivities"] = toppop
@@ -233,7 +246,14 @@ class AssigningActivititesProblem(BaseModel):
             #print (data["selections"])
             for s in data["selections"]:
                 print (s)
+
+
+        
+
         return cls(**data)
+
+
+
 
     def get_popular_activities(self) -> list[Activity]:
         return {a for a in self.popularactivities}

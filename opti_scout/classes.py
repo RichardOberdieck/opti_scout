@@ -182,18 +182,21 @@ class AssigningActivititesProblem(BaseModel):
         with open(file_name, "r") as file:
             data = json.load(file)
 
-        #to accomodate travel time add 30 min to each activity session duration and each group available time (to accomodate for longer session)
-        travelminutes=30
+        # to accomodate travel time add 30 min to each activity session duration and each group available time (to accomodate for longer session)
+        travelminutes = 30
 
-        date_format = '%Y-%m-%dT%H:%M:%SZ'
+        date_format = "%Y-%m-%dT%H:%M:%SZ"
         for a in data["activities"]:
             for t in a["timeslots"]:
-               t["end"] = (datetime.strptime(t["end"], date_format) + timedelta(minutes=travelminutes)).strftime(date_format)
-            
+                t["end"] = (datetime.strptime(t["end"], date_format) + timedelta(minutes=travelminutes)).strftime(
+                    date_format
+                )
+
         for g in data["groups"]:
             for a in g["available"]:
-               a["end"] = (datetime.strptime(a["end"], date_format) + timedelta(minutes=travelminutes)).strftime(date_format)
-
+                a["end"] = (datetime.strptime(a["end"], date_format) + timedelta(minutes=travelminutes)).strftime(
+                    date_format
+                )
 
         # Create named directory of activities
         acts = {}
@@ -214,7 +217,7 @@ class AssigningActivititesProblem(BaseModel):
         # add nm most common as input to function from_json
         most_common = Counter(popular).most_common(2)
 
-        top_two_activities = [item for item, count in most_common]
+        top_activities = [item for item, count in most_common]
 
         list_activities = list_activities_adapter.validate_python(data["activities"])
         list_groups = list_group_adapter.validate_python(data["groups"])
@@ -256,9 +259,6 @@ class AssigningActivititesProblem(BaseModel):
             for s in data["selections"]:
                 print(s)
         return cls(**data)
-
-
-
 
     def get_popular_activities(self) -> list[Activity]:
         return {a for a in self.popularactivities}

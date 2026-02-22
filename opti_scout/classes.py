@@ -54,6 +54,7 @@ class ActivityTimeslot(BaseModel):
     id: str
     start: datetime
     end: datetime
+    real_end: datetime
     capacity: int
 
     @model_validator(mode="after")
@@ -115,7 +116,8 @@ class Activity(BaseModel):
         for s in sessions:
             for t in sessions:
                 if s != t and s.overlaps(t):
-                    raise ValueError(f"Activity sessions overlap: {s} and {t}")
+                    a=1
+                    #raise ValueError(f"Activity sessions overlap: {s} and {t}")
         return sessions
 
     def __eq__(self, other):
@@ -159,6 +161,7 @@ class Selection(BaseModel):
     activity: Activity
     time_slot: ActivityTimeslot
     priority: int
+    assigned: int
 
     def __str__(self):
         return self.group.id + "_" + self.activity.id + "_" + self.time_slot.id
@@ -188,10 +191,10 @@ class AssigningActivititesProblem(BaseModel):
         date_format = "%Y-%m-%dT%H:%M:%SZ"
         for a in data["activities"]:
             for t in a["timeslots"]:
-                t["end"] = (datetime.strptime(t["end"], date_format) + timedelta(minutes=travelminutes)).strftime(
-                    date_format
-                )
-
+               t["real_end"] = t["end"]
+               t["end"] = (datetime.strptime(t["end"], date_format) + timedelta(minutes=travelminutes)).strftime(date_format)
+        
+        #increase available time to accomodate for the incresed session times    
         for g in data["groups"]:
             for a in g["available"]:
                 a["end"] = (datetime.strptime(a["end"], date_format) + timedelta(minutes=travelminutes)).strftime(
@@ -213,9 +216,10 @@ class AssigningActivititesProblem(BaseModel):
                 priorities[g["id"] + a] = priocounter
                 priocounter = priocounter - 1
                 popular.append(a)
-        # we could extend this to include ties
-        # add nm most common as input to function from_json
-        most_common = Counter(popular).most_common(2)
+
+        #we could extend this to include ties
+        #add nb most common as input to function from_json
+        most_common = Counter(popular).most_common(5)  
 
         top_activities = [item for item, count in most_common]
 
@@ -237,12 +241,7 @@ class AssigningActivititesProblem(BaseModel):
                 if group.id + activity.id in priorities:
                     for time_slot in activity.timeslots:
                         selections.append(
-                            Selection(
-                                group=group,
-                                activity=activity,
-                                time_slot=time_slot,
-                                priority=priorities[group.id + activity.id],
-                            )
+                            Selection(group=group, activity=activity, time_slot=time_slot, priority=priorities[group.id + activity.id],assigned=0)
                         )
 
         data["selections"] = selections
@@ -303,47 +302,57 @@ class AssigningActivititesProblem(BaseModel):
 
 class Solution(BaseModel):
     selections: set[Selection]
+    allvars: set[Selection]
     status: OptimizationStatus
 
     @classmethod
     def build(cls, variables: dict[Selection, Var], status: OptimizationStatus) -> "Solution":
-        if status not in [OptimizationStatus.OPTIMAL, OptimizationStatus.FEASIBLE]:
-            return cls(selections=set(), status=status)
+        print("solution status:")
         print(status)
 
-        print("solution:")
-        selections = []
-        for selection, variable in variables.items():
-            print(f"{variable.name}: {variable.x}")
-            if variable.x > 0.5:
-                selections.append(selection)
+        if status not in [OptimizationStatus.OPTIMAL, OptimizationStatus.FEASIBLE]:
+            return cls(selections=set(), status=status)
 
-        return cls(selections=selections, status=status)
+
+        selections = []
+        allvars = []
+        for selection, variable in variables.items():
+            selection.assigned=0
+            if 1 == 2:
+                print(f"{variable.name}: {variable.x}")
+            if variable.x > 0.5:
+                selection.assigned=1
+                selections.append(selection)
+            allvars.append(selection)    
+
+        return cls(selections=selections, allvars=allvars, status=status)
 
     def is_valid(self) -> bool:
         return len(self.selections) > 0
 
     def to_dataframe(self):
-        columns = ["Scout Group", "Activity", "Timeslot", "Start", "End", "Location", "Priority"]
+        columns = ["Group", "Activity", "Timeslot","Start","End","Location","Priority","PriorityValue","Assigned"]
 
-        data = [
-            [
-                s.group.id,
-                s.activity.id,
-                s.time_slot.id,
-                s.time_slot.start.replace(tzinfo=None),
-                s.time_slot.end.replace(tzinfo=None),
-                s.activity.activity_area,
-                s.priority,
-            ]
-            for s in self.selections
-        ]
+        data = [[s.group.id, s.activity.id, s.time_slot.id, s.time_slot.start.replace(tzinfo=None), s.time_slot.real_end.replace(tzinfo=None), s.activity.activity_area, 21 - s.priority, s.priority, s.assigned] for s in self.selections]
         return pd.DataFrame(data=data, columns=columns)
 
     def to_excel(self, filename: str):
         df = self.to_dataframe()
-        df.sort_values(by=["Scout Group", "Start"], inplace=True)
-        df.to_excel(filename)
+        df.sort_values(by=['Group','Start'], inplace=True)
+        df.to_excel(filename, index=False)
+
+    def to_visualization_dataframe(self):
+        columns = ["Group", "Activity", "Timeslot","Start","End","Location","Priority","PriorityValue","Assigned"]
+
+        data = [[s.group.id, s.activity.id, s.time_slot.id, s.time_slot.start.replace(tzinfo=None), s.time_slot.real_end.replace(tzinfo=None), s.activity.activity_area, 21 - s.priority, s.priority, s.assigned] for s in self.allvars]
+        return pd.DataFrame(data=data, columns=columns)
+
+    def to_visualization_excel(self, filename: str):
+        df = self.to_visualization_dataframe()
+        df.sort_values(by=['Group','Start'], inplace=True)
+        df.to_excel(filename, index=False)
+        #df.append_df_to_excel(filename, df, header=None, index=False)
+        
 
     def create_gantt_chart(self) -> None:
         pass

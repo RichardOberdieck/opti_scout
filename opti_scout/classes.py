@@ -6,13 +6,14 @@ from mip import OptimizationStatus, Var
 from datetime import datetime, timedelta
 from collections import Counter
 
+
 class age_span(BaseModel):
     low: int
     high: int
 
     def __str__(self):
         return "low, high"
-   
+
 
 class Timeslot(BaseModel):
     start: datetime
@@ -62,10 +63,16 @@ class ActivityTimeslot(BaseModel):
             raise ValueError("Start time has to be before the end time")
         return self
 
-   
     def startname(self):
-        return 'id:'+self.id+'start'+self.start.strftime('%Y-%m-%d-%H%M')+'_end'+self.end.strftime('%Y-%m-%d-%H%M')
-        #return self.start.strftime("%Y_%m_%d_%H%M")
+        return (
+            "id:"
+            + self.id
+            + "start"
+            + self.start.strftime("%Y-%m-%d-%H%M")
+            + "_end"
+            + self.end.strftime("%Y-%m-%d-%H%M")
+        )
+        # return self.start.strftime("%Y_%m_%d_%H%M")
 
     def __eq__(self, other):
         if isinstance(other, ActivityTimeslot):
@@ -93,7 +100,7 @@ class ActivityTimeslot(BaseModel):
         return (self.start.date() in [other.start.date(), other.end.date()]) or (
             self.end.date() in [other.start.date(), other.end.date()]
         )
-    
+
 
 class Activity(BaseModel):
     id: str
@@ -117,29 +124,28 @@ class Activity(BaseModel):
         return self.id == other.id
 
     def __str__(self):
-        return  self.id
+        return self.id
 
     def __hash__(self):
         return hash(self.id)
 
+    # maybe add check that no timeslots overlap
 
-    #maybe add check that no timeslots overlap
-    
-   
-    #priorities: list[str]
+    # priorities: list[str]
+
 
 class Group(BaseModel):
     id: str
     size: int
     age_span: age_span
     available: set[Timeslot]
-    
+
     def __eq__(self, other):
         return self.id == other.id
 
     def __str__(self):
         return self.id
-    
+
     def __hash__(self):
         return hash(self.id)
 
@@ -147,8 +153,7 @@ class Group(BaseModel):
         for t in self.available:
             if t.contains(ActivityTimeslot):
                 return True
-        return False       
-
+        return False
 
 
 class Selection(BaseModel):
@@ -159,10 +164,10 @@ class Selection(BaseModel):
     assigned: int
 
     def __str__(self):
-        return self.group.id + "_" + self.activity.id + '_' + self.time_slot.id
+        return self.group.id + "_" + self.activity.id + "_" + self.time_slot.id
 
     def __hash__(self):
-        return hash(self.group) + 3*hash(self.activity) + 5*hash(self.time_slot) + 9*hash(self.priority)
+        return hash(self.group) + 3 * hash(self.activity) + 5 * hash(self.time_slot) + 9 * hash(self.priority)
 
 
 list_activities_adapter = TypeAdapter(list[Activity])
@@ -180,10 +185,10 @@ class AssigningActivititesProblem(BaseModel):
         with open(file_name, "r") as file:
             data = json.load(file)
 
-        #to accomodate travel time add 30 min to each activity session duration and each group available time (to accomodate for longer session)
-        travelminutes=30
+        # to accomodate travel time add 30 min to each activity session duration and each group available time (to accomodate for longer session)
+        travelminutes = 30
 
-        date_format = '%Y-%m-%dT%H:%M:%SZ'
+        date_format = "%Y-%m-%dT%H:%M:%SZ"
         for a in data["activities"]:
             for t in a["timeslots"]:
                t["real_end"] = t["end"]
@@ -192,8 +197,9 @@ class AssigningActivititesProblem(BaseModel):
         #increase available time to accomodate for the incresed session times    
         for g in data["groups"]:
             for a in g["available"]:
-               a["end"] = (datetime.strptime(a["end"], date_format) + timedelta(minutes=travelminutes)).strftime(date_format)
-
+                a["end"] = (datetime.strptime(a["end"], date_format) + timedelta(minutes=travelminutes)).strftime(
+                    date_format
+                )
 
         # Create named directory of activities
         acts = {}
@@ -202,13 +208,13 @@ class AssigningActivititesProblem(BaseModel):
 
         # Create named directory of priorities, which are selected activities for each group
         priorities = {}
-        popular=[]
+        popular = []
         for g in data["groups"]:
-            #start with priority 20 for each group
-            priocounter=20
+            # start with priority 20 for each group
+            priocounter = 20
             for a in g["priorities"]:
-                priorities[g["id"]+a] = priocounter
-                priocounter=priocounter-1
+                priorities[g["id"] + a] = priocounter
+                priocounter = priocounter - 1
                 popular.append(a)
 
         #we could extend this to include ties
@@ -216,7 +222,7 @@ class AssigningActivititesProblem(BaseModel):
         most_common = Counter(popular).most_common(5)  
 
         top_activities = [item for item, count in most_common]
-        
+
         list_activities = list_activities_adapter.validate_python(data["activities"])
         list_groups = list_group_adapter.validate_python(data["groups"])
 
@@ -229,7 +235,7 @@ class AssigningActivititesProblem(BaseModel):
 
         # Create named directory of selections, selections are actual sessions for each of the activities that groups have prioritized == variables in the model
         selections = []
-        
+
         for group in list_groups:
             for activity in list_activities:
                 if group.id + activity.id in priorities:
@@ -238,28 +244,20 @@ class AssigningActivititesProblem(BaseModel):
                             Selection(group=group, activity=activity, time_slot=time_slot, priority=priorities[group.id + activity.id],assigned=0)
                         )
 
-
         data["selections"] = selections
-        
-        if 'debug'  == 'nodebug':
-            print ("printing groups")
-            print (data["groups"])
-    
-            print ("printing activities")
-            print (data["activities"])
-        
-            print ("printing selections")
-            #print (data["selections"])
+
+        if "debug" == "nodebug":
+            print("printing groups")
+            print(data["groups"])
+
+            print("printing activities")
+            print(data["activities"])
+
+            print("printing selections")
+            # print (data["selections"])
             for s in data["selections"]:
-                print (s)
-
-
-        
-
+                print(s)
         return cls(**data)
-
-
-
 
     def get_popular_activities(self) -> list[Activity]:
         return {a for a in self.popularactivities}
@@ -281,16 +279,18 @@ class AssigningActivititesProblem(BaseModel):
 
         return overlaps
 
-    def get_all_selections_on_other_locations_for_different_activities_same_day(self, selection: Selection) -> list[Selection]:
+    def get_all_selections_on_other_locations_for_different_activities_same_day(
+        self, selection: Selection
+    ) -> list[Selection]:
         selections = []
         for s in self.selections:
-            #only look for this group
+            # only look for this group
             if s.group != selection.group:
                 continue
-            #only allow other activitites
+            # only allow other activitites
             if s.activity == selection.activity:
                 continue
-            #only find different locations
+            # only find different locations
             if s.activity.activity_area == selection.activity.activity_area:
                 continue
 
@@ -298,7 +298,7 @@ class AssigningActivititesProblem(BaseModel):
                 selections.append(s)
 
         return selections
-    
+
 
 class Solution(BaseModel):
     selections: set[Selection]
@@ -356,6 +356,3 @@ class Solution(BaseModel):
 
     def create_gantt_chart(self) -> None:
         pass
-
-
-    

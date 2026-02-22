@@ -11,12 +11,16 @@ def timeslots():
         Timeslot(start=datetime(2025, 9, 25, 9, 30), end=datetime(2025, 9, 25, 16, 0)),
     ]
 
+
 @fixture
 def activitytimeslots():
     return [
-        ActivityTimeslot(id="p0001",capacity=300, start=datetime(2025, 9, 25, 9, 0), end=datetime(2025, 9, 25, 10, 0)),
-        ActivityTimeslot(id="p0002",capacity=100,start=datetime(2025, 9, 25, 9, 30), end=datetime(2025, 9, 25, 16, 0)),
+        ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9, 0), end=datetime(2025, 9, 25, 10, 0)),
+        ActivityTimeslot(
+            id="p0002", capacity=100, start=datetime(2025, 9, 25, 9, 30), end=datetime(2025, 9, 25, 16, 0)
+        ),
     ]
+
 
 @fixture
 def assigning_activities_problem():
@@ -86,70 +90,65 @@ def test_timeslot_overlap(slot1, slot2, expected):
     [
         # Identical timeslots
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
-            ActivityTimeslot(id="p0002",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
+            ActivityTimeslot(id="p0002", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
             True,
         ),
         # slot3 starts during slot4
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 11)),
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 12)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 11)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 12)),
             True,
         ),
         # slot4 ends during slot3
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 12)),
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 11)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 12)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 11)),
             True,
         ),
         # slot4 fully inside slot3
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 12)),
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 12)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
             True,
         ),
         # slot3 fully inside slot4
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 12)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 12)),
             True,
         ),
         # Adjacent timeslots (no overlap)
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 10), end=datetime(2025, 9, 25, 11)),
             False,
         ),
         # Completely separate timeslots
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 11), end=datetime(2025, 9, 25, 12)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 9), end=datetime(2025, 9, 25, 10)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 11), end=datetime(2025, 9, 25, 12)),
             False,
         ),
         # Overlap across midnight
         (
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 25, 23), end=datetime(2025, 9, 26, 1)),
-            ActivityTimeslot(id="p0001",capacity=300,start=datetime(2025, 9, 26, 0), end=datetime(2025, 9, 26, 2)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 25, 23), end=datetime(2025, 9, 26, 1)),
+            ActivityTimeslot(id="p0001", capacity=300, start=datetime(2025, 9, 26, 0), end=datetime(2025, 9, 26, 2)),
             True,
-        ),        
+        ),
     ],
 )
-
 def test_activitytimeslot_overlap(slot3, slot4, expected):
     assert slot3.overlaps(slot4) == expected
     assert slot4.overlaps(slot3) == expected  # symmetry check
 
 
-
-def test_get_overlapping_selections(timeslots,activitytimeslots):
+def test_get_overlapping_selections(timeslots, activitytimeslots):
     # Create Activities
     activity1 = Activity(
         name="Archery",
         id="A0001",
-        age_span = {
-				"low": 7,
-				"high": 10
-			},
+        age_span={"low": 7, "high": 10},
         timeslots=set([activitytimeslots[0]]),
         activity_area="Lejren",
         in_camp=False,
@@ -157,18 +156,15 @@ def test_get_overlapping_selections(timeslots,activitytimeslots):
     activity2 = Activity(
         name="Kayaking",
         id="A0002",
-        age_span = {
-				"low": 7,
-				"high": 10
-			},
+        age_span={"low": 7, "high": 10},
         timeslots=set([activitytimeslots[1]]),
         activity_area="Lejren",
         in_camp=False,
     )
 
     # Create ScoutGroups
-    group1 = Group(name="Eagles", id="G0001", age_span = {"low": 7,"high": 10}, size=10, available=set(timeslots))
-    group2 = Group(name="Wolves", id="G0002", age_span = {"low": 7,"high": 10}, size=8, available=set([timeslots[1]]))
+    group1 = Group(name="Eagles", id="G0001", age_span={"low": 7, "high": 10}, size=10, available=set(timeslots))
+    group2 = Group(name="Wolves", id="G0002", age_span={"low": 7, "high": 10}, size=8, available=set([timeslots[1]]))
 
     # Create Selections
     selection1 = Selection(group=group1, activity=activity1, time_slot=activitytimeslots[0], priority=1)
@@ -182,7 +178,6 @@ def test_get_overlapping_selections(timeslots,activitytimeslots):
         groups=[group1, group2],
         selections=[selection1, selection2, selection3, selection1a],
         popularactivities=[activity1],
-        
     )
 
     overlapping_selections = problem.get_overlapping_selections(selection1)

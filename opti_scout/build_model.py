@@ -157,8 +157,8 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             print (sessioncounter)
          for s1 in self.assigning_activities_problem.get_overlapping_selections(s):
             self.model += (
-               x[s] + x[s1] <= 1,
-               f"overlapping_sessions_{s}_and_{s1}_for_group_{s.group.id}",
+                x[s] <= 0,
+                f"groupDoesNotHaveAvailabletime_{s.group.id}_{s.activity.id}_start{s.time_slot.startname()}",
             )
 
 
@@ -231,19 +231,14 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
          selections = [
                s for s in self.assigning_activities_problem.selections if s.group == g and s.activity in self.assigning_activities_problem.popularactivities
             ]
-         #print (g.id)
-         #print (selections)
-         self.model += (
-            xsum(x[s] for s in selections) <= max_activities,
-            "group_" + g.id + "_at_most_1_popular_activity",
-         )      
+            # print (g.id)
+            # print (selections)
+            self.model += (
+                xsum(x[s] for s in selections) <= max_activities,
+                "group_" + g.id + "_at_most_1_popular_activity",
+            )
 
-
-   # define the objective function
-   def add_objective(self, x: dict[tuple, Var]) -> None:
-      print("add objective")
-      self.model.objective = maximize(xsum(s.priority * x[s] for s in self.assigning_activities_problem.selections))
-
-
-
-   
+    # define the objective function
+    def add_objective(self, x: dict[tuple, Var]) -> None:
+        print("add objective")
+        self.model.objective = maximize(xsum(s.priority * x[s] for s in self.assigning_activities_problem.selections))

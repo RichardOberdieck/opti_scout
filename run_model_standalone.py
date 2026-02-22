@@ -8,9 +8,14 @@ import os
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
-currpath = os.getcwd()
-print("we are now in: ", currpath)
-assign_activity_problem = AssigningActivititesProblem.from_json("../opti_scout/tests/data/tom_full_periodeid.json")
+currpath=os.getcwd()
+print ("we are now in: ",currpath)
+#filename="20260218response_small"
+filename="20260218response_v3"
+assign_activity_problem =  AssigningActivititesProblem.from_json("../opti_scout/tests/data/"+filename+".json")
+#assign_activity_problem =  AssigningActivititesProblem.from_json("../opti_scout/tests/data/tom_full_periodeid.json")
+resultname=filename+".xlsx"
+resultname_unassigned=filename+"_all.xlsx"
 
 model_builder = ModelBuilder.create(assign_activity_problem)
 
@@ -19,10 +24,11 @@ print("Most Popular activities")
 for a in popact:
     print(a.id)
 
+solution = model_builder.solve(maxseconds=600, filename=filename)
+print("Input filename:" +filename)
 
-solution = model_builder.solve()
-
-solution.to_excel("tomtest.xlsx")
+solution.to_excel(resultname)
+solution.to_visualization_excel(resultname_unassigned)
 
 # todo
 # check uniqueness of ids for groups, activities, priorities

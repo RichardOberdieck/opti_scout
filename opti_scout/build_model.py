@@ -157,8 +157,8 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             print (sessioncounter)
          for s1 in self.assigning_activities_problem.get_overlapping_selections(s):
             self.model += (
-                x[s] <= 0,
-                f"groupDoesNotHaveAvailabletime_{s.group.id}_{s.activity.id}_start{s.time_slot.startname()}",
+                x[s] + x[s1] <= 1,
+                f"exclude_overlapping_sessions_for_{s.group.id}_{s.activity.id}_start{s.time_slot.startname()}_with_{s1}",
             )
 
 

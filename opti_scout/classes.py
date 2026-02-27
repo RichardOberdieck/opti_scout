@@ -294,7 +294,6 @@ class AssigningActivititesProblem(BaseModel):
             ]
             for a in self.activities for t in a.timeslots
         ]
-        print (data)    
             
         return pd.DataFrame(data=data, columns=columns)
 

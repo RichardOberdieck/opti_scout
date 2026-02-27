@@ -135,7 +135,6 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
         # print("set preproces to 0")
         # self.model.preprocess=0
 
-        self.model.write(filename + ".lp")
         self.model.write(filename + ".mps")
 
         status = self.model.optimize(max_seconds=maxseconds)

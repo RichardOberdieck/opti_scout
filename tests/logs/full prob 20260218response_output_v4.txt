@@ -1,0 +1,463 @@
+#Activities: 32
+#Groups: 576
+#selections: 46588
+starttime:15:05:53
+modelready_time:16:09:24
+endtime starttime diff:63 minutes
+addmax_scout_time: 15:05:53(0 minutes)
+addmax_1_session_time: 15:14:17(8 minutes)
+addmax_1_overlapping_time: 15:41:35(35 minutes)
+add_unavailable_time: 15:41:36(0 minutes)
+add_1_location_eachday_time: 16:09:06(27 minutes)
+add_age_time: 16:09:06(0 minutes)
+add_max_popular_time: 16:09:23(0 minutes)
+add_objective_time: 16:09:24(0 minutes)
+modelready_time: 16:09:24(0 minutes)
+Welcome to the CBC MILP Solver
+Version: Trunk
+Build Date: Oct 28 2021
+
+Starting solution of the Linear programming relaxation problem using Primal Simplex
+
+Coin0506I Presolve 186510 (-404189) rows, 40668 (-5920) columns and 420547 (-810556) elements
+Clp0030I 2 infeas 7379.5194, obj 135806.3 - mu 0.19158123, its 105, 34876 interior
+Clp0030I 3 infeas 1922.937, obj 73319.844 - mu 0.19158123, its 105, 33365 interior
+Clp0030I 4 infeas 3691.3428, obj 116934.04 - mu 0.063854024, its 105, 37079 interior
+Clp0030I 6 infeas 18.873207, obj 63559.342 - mu 0.063854024, its 105, 33534 interior
+Clp0030I 8 infeas 3.3703856, obj 63454.004 - mu 0.021282546, its 105, 32173 interior
+Clp0030I 10 infeas 406.81278, obj 69502.309 - mu 0.0070934727, its 105, 36557 interior
+Clp0030I 11 infeas 0.90707075, obj 63442.702 - mu 0.0070934727, its 105, 34512 interior
+Clp0030I 13 infeas 135.72338, obj 65463.438 - mu 0.0023642544, its 105, 37441 interior
+Clp0030I 14 infeas 0.67612715, obj 63441.456 - mu 0.0023642544, its 105, 36583 interior
+Clp0030I 16 infeas 45.203495, obj 64115.79 - mu 0.00078800601, its 105, 37484 interior
+Clp0030I 17 infeas 0.37494628, obj 63442.106 - mu 0.00078800601, its 105, 37645 interior
+Clp0030I 18 infeas 0.41600937, obj 63443.081 - mu 0.00078800601, its 105, 37291 interior
+Clp0030I 19 infeas 15.090285, obj 63666.736 - mu 0.0002626424, its 105, 37978 interior
+Clp0030I 20 infeas 0.16902129, obj 63442.471 - mu 0.0002626424, its 105, 37692 interior
+Clp0030I 21 infeas 0.10634327, obj 63442.63 - mu 0.0002626424, its 105, 37767 interior
+Clp0030I 23 infeas 0.0376027, obj 63442.392 - mu 8.7538713e-05, its 105, 38120 interior
+Clp0030I 25 infeas 1.6715571, obj 63467.346 - mu 2.9176653e-05, its 105, 38329 interior
+Clp0030I 27 infeas 0.0046895135, obj 63442.385 - mu 2.9176653e-05, its 105, 38322 interior
+Clp0030I 29 infeas 0.0055493418, obj 63442.401 - mu 9.7245784e-06, its 105, 38556 interior
+Clp0030I 31 infeas 0.1854467, obj 63445.155 - mu 3.241202e-06, its 105, 38689 interior
+Clp0030I 33 infeas 0.00047900962, obj 63442.381 - mu 3.241202e-06, its 62, 38690 interior
+Clp0030I 35 infeas 0.0011654939, obj 63442.386 - mu 1.0802926e-06, its 105, 38691 interior
+Clp0030I 37 infeas 0.020591692, obj 63442.688 - mu 3.6006153e-07, its 105, 38693 interior
+Clp0030I 38 infeas 0.00044488634, obj 63442.382 - mu 3.6006153e-07, its 105, 38693 interior
+Clp0030I 40 infeas 0.0068640937, obj 63442.483 - mu 1.2000851e-07, its 105, 38693 interior
+Clp0030I 42 infeas 1.5720612e-05, obj 63442.38 - mu 1.2000851e-07, its 62, 38693 interior
+Clp0030I 44 infeas 5.1888552e-05, obj 63442.381 - mu 3.9998836e-08, its 105, 38693 interior
+Clp0030I 46 infeas 0.00076262552, obj 63442.392 - mu 1.3331612e-08, its 105, 38693 interior
+Clp0030I 48 infeas 1.6905012e-06, obj 63442.381 - mu 1.3331612e-08, its 62, 38693 interior
+Clp0030I 50 infeas 5.7533404e-06, obj 63442.381 - mu 4.4434263e-09, its 105, 38693 interior
+Clp1000I sum of infeasibilities 1.81335e-07 - average 9.72251e-13, 2027 fixed columns
+Coin0506I Presolve 168333 (-18177) rows, 38626 (-2042) columns and 379247 (-41300) elements
+Clp0006I 0  Obj 63368.405 Dual inf 57732756 (38626)
+Clp0006I 30635  Obj 63442.445 Dual inf 193243.06 (535)
+Clp0029I End of values pass after 38626 iterations
+Clp0014I Perturbing problem by 0.001% of 1.0158788 - largest nonzero change 2.9996332e-05 ( 0.0016367587%) - largest zero change 2.999521e-05
+Clp0000I Optimal - objective value 63442.462
+Clp0000I Optimal - objective value 63442.462
+Coin0511I After Postsolve, objective 63442.462, infeasibilities - dual 0 (0), primal 0 (0)
+Clp0006I 0  Obj 63442.462
+Clp0000I Optimal - objective value 63442.462
+Clp0000I Optimal - objective value 63442.462
+Clp0000I Optimal - objective value 63442.462
+Coin0511I After Postsolve, objective 63442.462, infeasibilities - dual 0 (0), primal 0 (0)
+Clp0032I Optimal objective 63442.46154 - 0 iterations time 35.742, Presolve 1.11, Idiot 34.54
+
+Starting MIP optimization
+Cgl0002I 5882 variables fixed
+Cgl0008I 3953 inequality constraints converted to equality constraints
+Cgl0003I 0 fixed, 0 tightened bounds, 76086 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 0 tightened bounds, 76967 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 5 tightened bounds, 75089 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 50 tightened bounds, 74657 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 70 tightened bounds, 72846 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 181 tightened bounds, 71024 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 242 tightened bounds, 66957 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 360 tightened bounds, 65292 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 541 tightened bounds, 61825 strengthened rows, 0 substitutions
+Cgl0004I processed model has 108233 rows, 43150 columns (43150 integer (43150 of which binary)) and 682734 elements
+Coin3009W Conflict graph built in 0.121 seconds, density: 0.012%
+Cgl0015I Clique Strengthening extended 21915 cliques, 98366 were dominated
+Cbc0045I Nauty sparseSpace 915004 affine 44383 coefficient count 119316
+PS C:\gitrepositories\opti_scout> 
+ *  History restored 
+
+PS C:\gitrepositories\opti_scout> & "C:/Users/Torben Skov/AppData/Local/Programs/Python/Python311/python.exe" c:/gitrepositories/opti_scout/run_model_standalone.py
+we are now in:  c:\gitrepositories\opti_scout
+Most Popular activities
+a00218
+a00072
+a00209
+a00207
+a00205
+#Activities: 32
+#Groups: 576
+#selections: 46588
+add_maxscout_constraint (1/8)
+add_maxscout_constraint
+a00205
+a00215
+a00225
+add_max_1_session_constraint (2/8)
+add_max_1_session_constraint
+Traceback (most recent call last):
+  File "c:\gitrepositories\opti_scout\run_model_standalone.py", line 30, in <module>
+    solution = model_builder.solve(maxseconds=5000)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\gitrepositories\opti_scout\opti_scout\build_model.py", line 28, in solve
+    self.add_max_1_session_constraint(x)
+  File "c:\gitrepositories\opti_scout\opti_scout\build_model.py", line 130, in add_max_1_session_constraint
+    selections = [
+                 ^
+  File "c:\gitrepositories\opti_scout\opti_scout\build_model.py", line 131, in <listcomp>
+    s for s in self.assigning_activities_problem.selections if s.group == g and s.activity == a
+                                                               ^^^^^^^^^^^^
+  File "c:\gitrepositories\opti_scout\opti_scout\classes.py", line 137, in __eq__
+    def __eq__(self, other):
+
+KeyboardInterrupt
+PS C:\gitrepositories\opti_scout> & "C:/Users/Torben Skov/AppData/Local/Programs/Python/Python311/python.exe" c:/gitrepositories/opti_scout/run_model_standalone.py
+we are now in:  c:\gitrepositories\opti_scout
+Most Popular activities
+a00205
+a00207
+a00072
+a00209
+a00218
+#Activities: 32
+#Groups: 576
+#selections: 46588
+add_maxscout_constraint (1/8)
+add_maxscout_constraint
+a00205
+a00215
+a00225
+add_max_1_session_constraint (2/8)
+add_max_1_session_constraint
+g00552
+g00527
+g00502
+g00477
+g00452
+g00427
+g00402
+g00377
+g00352
+g00327
+g00302
+g00277
+g00252
+g00227
+g00202
+g00177
+g00152
+g00127
+g00102
+g00077
+g00052
+g00027
+g00002
+add_max_1_of_overlapping_sessions_constraint (3/8)
+add_max_1_of_overlapping_sessions_constraint
+1000
+2000
+3000
+4000
+5000
+6000
+7000
+8000
+9000
+10000
+11000
+12000
+13000
+14000
+15000
+16000
+17000
+18000
+19000
+20000
+21000
+22000
+23000
+24000
+25000
+26000
+27000
+28000
+29000
+30000
+31000
+32000
+33000
+34000
+35000
+36000
+37000
+38000
+39000
+40000
+41000
+42000
+43000
+44000
+45000
+46000
+add_unavailable_time_constraint (4/8)
+add_unavailable_time_constraint
+1000
+2000
+3000
+4000
+5000
+6000
+7000
+8000
+9000
+10000
+11000
+12000
+13000
+14000
+15000
+16000
+17000
+18000
+19000
+20000
+21000
+22000
+23000
+24000
+25000
+26000
+27000
+28000
+29000
+30000
+31000
+32000
+33000
+34000
+35000
+36000
+37000
+38000
+39000
+40000
+41000
+42000
+43000
+44000
+45000
+46000
+add_onlyone_activitylocation_eachday_constraint (5/8)
+add_onlyone_activitylocation_eachday_constraint
+1000
+2000
+3000
+4000
+5000
+6000
+7000
+8000
+9000
+10000
+11000
+12000
+13000
+14000
+15000
+16000
+17000
+18000
+19000
+20000
+21000
+22000
+23000
+24000
+25000
+26000
+27000
+28000
+29000
+30000
+31000
+32000
+33000
+34000
+35000
+36000
+37000
+38000
+39000
+40000
+41000
+42000
+43000
+44000
+45000
+46000
+add_age_constraint (6/8)
+add_age_constraint
+NOTE found selection where age group not with allowed ages g00210 a00218, this should not be the case, adding constraint to prevent assignment
+Remember this is disabled
+1000
+2000
+3000
+4000
+5000
+6000
+7000
+8000
+9000
+10000
+11000
+12000
+13000
+14000
+15000
+16000
+17000
+18000
+19000
+20000
+21000
+22000
+23000
+24000
+25000
+26000
+27000
+28000
+29000
+30000
+31000
+32000
+33000
+34000
+35000
+36000
+37000
+38000
+39000
+40000
+41000
+42000
+43000
+44000
+45000
+46000
+add_max_nb_of_most_popular_activities_constraint (7/8)
+add_max_nb_of_most_popular_activities_constraint
+g00552
+g00527
+g00502
+g00477
+g00452
+g00427
+g00402
+g00377
+g00352
+g00327
+g00302
+g00277
+g00252
+g00227
+g00202
+g00177
+g00152
+g00127
+g00102
+g00077
+g00052
+g00027
+g00002
+add_objective (8/8)
+add objective
+#Activities: 32
+#Groups: 576
+#selections: 46588
+starttime:09:14:52
+modelready_time:10:17:13
+endtime starttime diff:62 minutes
+addmax_scout_time: 09:14:53(0 minutes)
+addmax_1_session_time: 09:23:19(8 minutes)
+addmax_1_overlapping_time: 09:50:06(35 minutes)
+add_unavailable_time: 09:50:07(0 minutes)
+add_1_location_eachday_time: 10:16:57(26 minutes)
+add_age_time: 10:16:57(0 minutes)
+add_max_popular_time: 10:17:12(0 minutes)
+add_objective_time: 10:17:13(0 minutes)
+modelready_time: 10:17:13(0 minutes)
+Welcome to the CBC MILP Solver 
+Version: Trunk
+Build Date: Oct 28 2021
+
+Starting solution of the Linear programming relaxation problem using Primal Simplex
+
+Coin0506I Presolve 186511 (-404188) rows, 40668 (-5920) columns and 420549 (-810554) elements
+Clp0030I 2 infeas 7365.263, obj 135867.1 - mu 0.19158123, its 105, 34941 interior
+Clp0030I 4 infeas 3690.8004, obj 116938.89 - mu 0.063854024, its 105, 37040 interior
+Clp0030I 6 infeas 19.116417, obj 63560.403 - mu 0.063854024, its 105, 33664 interior
+Clp0030I 8 infeas 1.7629726, obj 63447.913 - mu 0.021282546, its 105, 32687 interior
+Clp0030I 10 infeas 406.97086, obj 69503.238 - mu 0.0070934727, its 105, 36627 interior
+Clp0030I 12 infeas 0.8504953, obj 63443.673 - mu 0.0070934727, its 105, 35001 interior
+Clp0030I 14 infeas 0.4687498, obj 63442.094 - mu 0.0023642544, its 105, 36630 interior
+Clp0030I 16 infeas 45.219038, obj 64115.877 - mu 0.00078800601, its 105, 37493 interior
+Clp0030I 18 infeas 0.078660407, obj 63442.58 - mu 0.00078800601, its 105, 37349 interior
+Clp0030I 20 infeas 0.19939964, obj 63442.086 - mu 0.0002626424, its 105, 37914 interior
+Clp0030I 22 infeas 5.0208109, obj 63517.237 - mu 8.7538713e-05, its 105, 37849 interior
+Clp0030I 24 infeas 0.037658498, obj 63442.467 - mu 8.7538713e-05, its 105, 38124 interior
+Clp0030I 26 infeas 0.011914682, obj 63442.406 - mu 2.9176653e-05, its 105, 38326 interior
+Clp0030I 28 infeas 0.55665643, obj 63450.703 - mu 9.7245784e-06, its 105, 38619 interior
+Clp0030I 30 infeas 0.0012100822, obj 63442.378 - mu 9.7245784e-06, its 62, 38571 interior
+Clp0030I 32 infeas 0.0024734676, obj 63442.389 - mu 3.241202e-06, its 105, 38622 interior
+Clp0030I 34 infeas 0.061794009, obj 63443.303 - mu 1.0802926e-06, its 105, 38674 interior
+Clp0030I 36 infeas 0.00017064288, obj 63442.379 - mu 1.0802926e-06, its 82, 38674 interior
+Clp0030I 38 infeas 0.0004304799, obj 63442.381 - mu 3.6006153e-07, its 105, 38674 interior
+Clp0030I 40 infeas 0.006864153, obj 63442.482 - mu 1.2000851e-07, its 105, 38674 interior
+Clp0030I 42 infeas 1.7629907e-05, obj 63442.379 - mu 1.2000851e-07, its 62, 38674 interior
+Clp0030I 44 infeas 5.0928998e-05, obj 63442.379 - mu 3.9998836e-08, its 105, 38674 interior
+Clp0030I 46 infeas 0.00076256247, obj 63442.39 - mu 1.3331612e-08, its 105, 38674 interior
+Clp0030I 48 infeas 1.8808647e-06, obj 63442.379 - mu 1.3331612e-08, its 62, 38674 interior
+Clp0030I 50 infeas 5.7265519e-06, obj 63442.379 - mu 4.4434263e-09, its 105, 38674 interior
+Clp1000I sum of infeasibilities 1.76634e-07 - average 9.47045e-13, 2073 fixed columns
+Coin0506I Presolve 168022 (-18489) rows, 38577 (-2091) columns and 378524 (-42025) elements
+Clp0006I 0  Obj 63382.958 Dual inf 57695877 (38577)
+Clp0006I 30577  Obj 63442.448 Dual inf 150315.3 (465)
+Clp0029I End of values pass after 38577 iterations
+Clp0014I Perturbing problem by 0.001% of 1.0160498 - largest nonzero change 2.9996358e-05 ( 0.0016361867%) - largest zero change 2.9996137e-05
+Clp0000I Optimal - objective value 63442.462
+Clp0000I Optimal - objective value 63442.462
+Coin0511I After Postsolve, objective 63442.462, infeasibilities - dual 0 (0), primal 0 (0)
+Clp0006I 0  Obj 63442.462
+Clp0000I Optimal - objective value 63442.462
+Clp0000I Optimal - objective value 63442.462
+Clp0000I Optimal - objective value 63442.462
+Coin0511I After Postsolve, objective 63442.462, infeasibilities - dual 0 (0), primal 0 (0)
+Clp0032I Optimal objective 63442.46154 - 0 iterations time 33.242, Presolve 1.01, Idiot 32.13
+
+Starting MIP optimization
+Cgl0002I 5882 variables fixed
+Cgl0008I 3953 inequality constraints converted to equality constraints
+Cgl0003I 0 fixed, 0 tightened bounds, 79123 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 0 tightened bounds, 79101 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 5 tightened bounds, 77230 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 78 tightened bounds, 75837 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 68 tightened bounds, 73284 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 174 tightened bounds, 72389 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 283 tightened bounds, 69748 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 385 tightened bounds, 65690 strengthened rows, 0 substitutions
+Cgl0003I 0 fixed, 481 tightened bounds, 62166 strengthened rows, 0 substitutions
+Cgl0004I processed model has 104555 rows, 43125 columns (43125 integer (43125 of which binary)) and 676061 elements
+Coin3009W Conflict graph built in 0.121 seconds, density: 0.012%
+Cgl0015I Clique Strengthening extended 21213 cliques, 93558 were dominated
+Cbc0045I Nauty sparseSpace 920290 affine 44358 coefficient count 119694
+PS C:\gitrepositories\opti_scout> 

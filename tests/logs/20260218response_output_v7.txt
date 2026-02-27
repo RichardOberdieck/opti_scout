@@ -1,0 +1,69 @@
+#Activities: 32
+#Groups: 350
+#selections: 28523
+starttime:11:59:20
+modelready_time:12:22:37
+endtime starttime diff:23 minutes
+addmax_scout_time: 11:59:20(0 minutes)
+addmax_1_session_time: 12:02:29(3 minutes)
+addmax_1_overlapping_time: 12:12:36(13 minutes)
+add_unavailable_time: 12:12:36(0 minutes)
+add_1_location_eachday_time: 12:22:31(9 minutes)
+add_age_time: 12:22:31(0 minutes)
+add_max_popular_time: 12:22:37(0 minutes)
+add_objective_time: 12:22:37(0 minutes)
+modelready_time: 12:22:37(0 minutes)
+preproces
+-1
+set preproces to 0
+Welcome to the CBC MILP Solver 
+Version: Trunk
+Build Date: Oct 28 2021
+
+Starting solution of the Linear programming relaxation problem using Primal Simplex
+
+Coin0506I Presolve 116306 (-246913) rows, 25239 (-3284) columns and 262274 (-495020) elements
+Clp0030I 2 infeas 4443.1997, obj 83361.77 - mu 0.19158123, its 105, 21778 interior
+Clp0030I 4 infeas 2252.4618, obj 71875.288 - mu 0.063854024, its 105, 23467 interior
+Clp0030I 6 infeas 13.709403, obj 39459.915 - mu 0.063854024, its 105, 21596 interior
+Clp0030I 8 infeas 3.0833329, obj 39400.46 - mu 0.021282546, its 105, 20992 interior
+Clp0030I 10 infeas 248.83739, obj 43061.58 - mu 0.0070934727, its 105, 23342 interior
+Clp0030I 12 infeas 0.41898311, obj 39391.283 - mu 0.0070934727, its 105, 22473 interior
+Clp0030I 14 infeas 0.30866527, obj 39392.074 - mu 0.0023642544, its 105, 23382 interior
+Clp0030I 16 infeas 27.643544, obj 39799.225 - mu 0.00078800601, its 105, 23803 interior
+Clp0030I 18 infeas 0.079082971, obj 39391.5 - mu 0.00078800601, its 105, 23781 interior
+Clp0030I 20 infeas 0.064578931, obj 39391.581 - mu 0.0002626424, its 105, 23965 interior
+Clp0030I 22 infeas 3.0696933, obj 39436.802 - mu 8.7538713e-05, its 105, 24052 interior
+Clp0030I 24 infeas 0.022100483, obj 39391.464 - mu 8.7538713e-05, its 105, 24129 interior
+Clp0030I 26 infeas 0.0089147206, obj 39391.472 - mu 2.9176653e-05, its 105, 24183 interior
+Clp0030I 28 infeas 0.34013119, obj 39396.486 - mu 9.7245784e-06, its 105, 24369 interior
+Clp0030I 30 infeas 0.00098165441, obj 39391.441 - mu 9.7245784e-06, its 105, 24340 interior
+Clp0030I 32 infeas 0.0019550103, obj 39391.451 - mu 3.241202e-06, its 105, 24423 interior
+Clp0030I 34 infeas 0.0377519, obj 39392.002 - mu 1.0802926e-06, its 105, 24437 interior
+Clp0030I 36 infeas 0.00014504775, obj 39391.442 - mu 1.0802926e-06, its 105, 24437 interior
+Clp0030I 38 infeas 0.00033722882, obj 39391.444 - mu 3.6006153e-07, its 105, 24437 interior
+Clp0030I 40 infeas 0.0041949676, obj 39391.505 - mu 1.2000851e-07, its 105, 24437 interior
+Clp0030I 42 infeas 1.6076157e-05, obj 39391.443 - mu 1.2000851e-07, its 105, 24437 interior
+Clp0030I 44 infeas 3.9586465e-05, obj 39391.443 - mu 3.9998836e-08, its 105, 24437 interior
+Clp0030I 46 infeas 0.00046609443, obj 39391.449 - mu 1.3331612e-08, its 105, 24437 interior
+Clp0030I 48 infeas 1.8463867e-06, obj 39391.443 - mu 1.3331612e-08, its 105, 24437 interior
+Clp0030I 50 infeas 4.3778253e-06, obj 39391.443 - mu 4.4434263e-09, its 105, 24437 interior
+Clp1000I sum of infeasibilities 1.53337e-07 - average 1.31839e-12, 836 fixed columns
+Coin0506I Presolve 108984 (-7322) rows, 24399 (-840) columns and 245520 (-16754) elements
+Clp0006I 0  Obj 39350.969 Dual inf 36060262 (24399)
+Clp0029I End of values pass after 24399 iterations
+Clp0014I Perturbing problem by 0.001% of 1.0214985 - largest nonzero change 2.999457e-05 ( 0.001602416%) - largest zero change 2.9996244e-05
+Clp0000I Optimal - objective value 39391.553
+Clp0000I Optimal - objective value 39391.553
+Coin0511I After Postsolve, objective 39391.553, infeasibilities - dual 0 (0), primal 0 (0)
+Clp0006I 0  Obj 39391.553
+Clp0000I Optimal - objective value 39391.553
+Clp0000I Optimal - objective value 39391.553
+Clp0000I Optimal - objective value 39391.553
+Coin0511I After Postsolve, objective 39391.553, infeasibilities - dual 0 (0), primal 0 (0)
+Clp0032I Optimal objective 39391.55263 - 0 iterations time 23.842, Presolve 0.62, Idiot 23.16
+
+Starting MIP optimization
+Coin3009W Conflict graph built in 0.170 seconds, density: 0.020%
+Cgl0015I Clique Strengthening extended 15662 cliques, 356602 were dominated
+Cbc0045I Nauty sparseSpace 616270 affine 31865 coefficient count 82668

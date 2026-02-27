@@ -14,6 +14,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
         return cls(assigning_activities_problem=assigning_activities_problem, model=Model())
 
     def solve(self, maxseconds: int, filename: str) -> Solution:
+
         x = self.generate_variables()
 
         print("filename: " + filename)
@@ -275,7 +276,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             for s1 in self.assigning_activities_problem.get_overlapping_selections(s):
                 self.model += (
                     x[s] + x[s1] <= 1,
-                    f"exclude_overlapping_sessions_for_{s.group.id}_{s.activity.id}_start{s.time_slot.startname()}_with_{s1}",
+                    f"exclude_overlapping_sessions_for_{s.group.id}_{s.activity.id}_{s.time_slot.id}_with_{s1}",
                 )
 
     # If a session falls outside the groups available hours, then force it to 0

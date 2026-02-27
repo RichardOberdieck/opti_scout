@@ -110,14 +110,14 @@ class Activity(BaseModel):
     activity_area: str
     in_camp: bool
 
-    @field_validator("timeslots", mode="after")
-    @classmethod
-    def ensure_sessions_do_not_overlap(cls, sessions: set[ActivityTimeslot]) -> set[ActivityTimeslot]:
-        for s in sessions:
-            for t in sessions:
-                if s != t and s.overlaps(t):
-                    print(f"Activity sessions overlap: {s} and {t}")
-        return sessions
+    #@field_validator("timeslots", mode="after")
+    #@classmethod
+    #def ensure_sessions_do_not_overlap(cls, sessions: set[ActivityTimeslot]) -> set[ActivityTimeslot]:
+    #    for s in sessions:
+    #        for t in sessions:
+    #            if s != t and s.overlaps(t):
+    #                print(f"Activity sessions overlap: {s} and {t}")
+    #    return sessions
 
     def __eq__(self, other):
         return self.id == other.id
@@ -183,6 +183,8 @@ class AssigningActivititesProblem(BaseModel):
     def from_json(cls, file_name: str) -> "AssigningActivititesProblem":
         with open(file_name, "r") as file:
             data = json.load(file)
+
+   
 
         # to accomodate travel time add 30 min to each activity session duration and each group available time (to accomodate for longer session)
         travelminutes = 30
@@ -265,6 +267,45 @@ class AssigningActivititesProblem(BaseModel):
             for s in data["selections"]:
                 print(s)
         return cls(**data)
+
+
+    def get_group_info(self) :
+        columns = ["GroupID", "Size"]
+
+        data = [
+            [
+                g.id,
+                g.size
+            ]
+            for g in self.groups
+        ]
+        return pd.DataFrame(data=data, columns=columns)
+
+    def get_session_info(self) :
+        columns = ["Sessionid", "Start","End","Capacity","ActivityArea","Activityid"]
+        data = [
+            [
+                t.id,
+                t.start.replace(tzinfo=None),
+                t.real_end.replace(tzinfo=None),
+                t.capacity,
+                a.activity_area,
+                a.id
+            ]
+            for a in self.activities for t in a.timeslots
+        ]
+        print (data)    
+            
+        return pd.DataFrame(data=data, columns=columns)
+
+
+    def write_base_info(self, path: str):
+        df = self.get_group_info()
+        df.sort_values(by=["GroupID"], inplace=True)
+        df.to_excel(path+'group_info.xlsx', index=False)
+        df1 = self.get_session_info()
+        df1.sort_values(by=["Sessionid"], inplace=True)
+        df1.to_excel(path+'session_info.xlsx', index=False)
 
     def get_popular_activities(self) -> list[Activity]:
         return {a for a in self.popularactivities}

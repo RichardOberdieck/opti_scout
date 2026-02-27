@@ -1,0 +1,23 @@
+Cbc0020I Exiting on maximum time
+Cbc0005I Partial search - best objective -21124 (best possible -21916.868), took 422319 iterations and 5333 nodes (1200.32 seconds)
+Cbc0032I Strong branching done 17826 times (139348 iterations), fathomed 314 nodes and fixed 181 variables
+Cbc0035I Maximum depth 2574, 0 variables fixed on reduced cost
+Total time (CPU seconds):       1205.62   (Wallclock seconds):       1205.62
+
+#Activities: 32
+#Groups: 342
+#selections: 27872
+starttime:12:16:00
+endtime:12:57:56
+endtime starttime diff:41 minutes
+addmax_scout_time: 12:16:03(0 minutes)
+addmax_1_session_time: 12:18:34(2 minutes)
+addmax_1_overlapping_time: 12:28:09(12 minutes)
+add_unavailable_time: 12:28:09(0 minutes)
+add_1_location_eachday_time: 12:37:13(9 minutes)
+add_age_time: 12:37:19(0 minutes)
+add_max_popular_time: 12:37:25(0 minutes)
+add_objective_time: 12:37:25(0 minutes)
+modelready_time: 12:37:25(0 minutes)
+solution status:
+OptimizationStatus.FEASIBLE

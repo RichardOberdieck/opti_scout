@@ -3,17 +3,29 @@ from pydantic import BaseModel
 from mip import BINARY, xsum, Model, maximize, Var
 import time
 import datetime
+import pandas as pd
 
 
 class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
     assigning_activities_problem: AssigningActivititesProblem
     model: Model
+    maxSessionsPerGroup: int
+    maxSolveSeconds: int
+    maxPopularActivities: int
+    minSessionsPerGroup: int
+
+
 
     @classmethod
     def create(cls, assigning_activities_problem: AssigningActivititesProblem) -> "ModelBuilder":
-        return cls(assigning_activities_problem=assigning_activities_problem, model=Model())
+        return cls(assigning_activities_problem=assigning_activities_problem, 
+                   model=Model(),
+                   maxSessionsPerGroup=100,
+                   maxSolveSeconds=300,
+                   maxPopularActivities=10,
+                   minSessionsPerGroup=0)
 
-    def solve(self, maxseconds: int, filename: str) -> Solution:
+    def solve(self, filename: str) -> Solution:
 
         x = self.generate_variables()
 
@@ -22,30 +34,47 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
         print("#Groups: " + str(len(self.assigning_activities_problem.groups)))
         print("#selections: " + str(len(self.assigning_activities_problem.selections)))
         time.sleep(5)
+        nbsteps=10
+        actualstep=1
         starttime = datetime.datetime.now()
-        print("add_maxscout_constraint (1/8)")
+        print("add_maxscout_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_maxscout_constraint(x)
         addmax_scout_time = datetime.datetime.now()
-        print("add_max_1_session_constraint (2/8)")
+        actualstep=actualstep+1
+        print("add_max_1_session_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_max_1_session_constraint(x)
         addmax_1_session_time = datetime.datetime.now()
-        print("add_max_1_of_overlapping_sessions_constraint (3/8)")
+        actualstep=actualstep+1
+        print("add_max_1_of_overlapping_sessions_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_max_1_of_overlapping_sessions_constraint(x)
         addmax_1_overlapping_time = datetime.datetime.now()
-        print("add_unavailable_time_constraint (4/8)")
+        actualstep=actualstep+1
+        print("add_unavailable_time_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_unavailable_time_constraint(x)
         add_unavailable_time = datetime.datetime.now()
-        print("add_onlyone_activitylocation_eachday_constraint (5/8)")
+        actualstep=actualstep+1
+        print("add_onlyone_activitylocation_eachday_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_onlyone_activitylocation_eachday_constraint(x)
         add_location_eachday_time = datetime.datetime.now()
-        print("add_age_constraint (6/8)")
+        actualstep=actualstep+1
+        print("add_age_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_age_constraint(x)
         add_age_time = datetime.datetime.now()
         # number is the maxmimum of popular activities
-        print("add_max_nb_of_most_popular_activities_constraint (7/8)")
-        self.add_max_nb_of_most_popular_activities_constraint(x, 2)
+        actualstep=actualstep+1
+        print("add_max_nb_of_most_popular_activities_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
+        self.add_max_nb_of_most_popular_activities_constraint(x)
         add_max_popular_time = datetime.datetime.now()
-        print("add_objective (8/8)")
+        actualstep=actualstep+1
+        print("add_min_1_session_per_group_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
+        self.add_min_session_per_group_constraint(x)
+        add_min_1_session_per_group_time = datetime.datetime.now()
+        actualstep=actualstep+1      
+        print("add_max_sessions_per_group_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
+        self.add_max_sessions_per_group_constraint(x)
+        add_max_sessions_per_group_constraint_time = datetime.datetime.now()
+        actualstep=actualstep+1
+        print("add_objective ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_objective(x)
         add_objective_time = datetime.datetime.now()
         modelready_time = datetime.datetime.now()
@@ -109,10 +138,25 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             + " minutes)"
         )
         print(
+            "add_min_1_session_per_group_time: "
+            + add_min_1_session_per_group_time.strftime("%H:%M:%S")
+            + "("
+            + str(int((add_min_1_session_per_group_time - add_max_popular_time).total_seconds() // 60))
+            + " minutes)"
+        )
+        print(
+            "add_max_sessions_per_group_constraint_time: "
+            + add_max_sessions_per_group_constraint_time.strftime("%H:%M:%S")
+            + "("
+            + str(int((add_max_sessions_per_group_constraint_time - add_min_1_session_per_group_time ).total_seconds() // 60))
+            + " minutes)"
+        )
+        
+        print(
             "add_objective_time: "
             + add_objective_time.strftime("%H:%M:%S")
             + "("
-            + str(int((add_objective_time - add_max_popular_time).total_seconds() // 60))
+            + str(int((add_objective_time - add_max_sessions_per_group_constraint_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
@@ -122,6 +166,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             + str(int((modelready_time - add_objective_time).total_seconds() // 60))
             + " minutes)"
         )
+
         print(
             "modelready_time total: "
             + modelready_time.strftime("%H:%M:%S")
@@ -137,7 +182,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
 
         self.model.write(filename + ".mps")
 
-        status = self.model.optimize(max_seconds=maxseconds)
+        status = self.model.optimize(max_seconds=self.maxSolveSeconds)
         endtime = datetime.datetime.now()
 
         print("#Activities: " + str(len(self.assigning_activities_problem.activities)))
@@ -198,10 +243,24 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             + " minutes)"
         )
         print(
+            "add_min_1_session_per_group_time: "
+            + add_min_1_session_per_group_time.strftime("%H:%M:%S")
+            + "("
+            + str(int((add_min_1_session_per_group_time - add_max_popular_time).total_seconds() // 60))
+            + " minutes)"
+        )
+        print(
+            "add_max_sessions_per_group_constraint_time: "
+            + add_max_sessions_per_group_constraint_time.strftime("%H:%M:%S")
+            + "("
+            + str(int((add_max_sessions_per_group_constraint_time - add_min_1_session_per_group_time ).total_seconds() // 60))
+            + " minutes)"
+        )        
+        print(
             "add_objective_time: "
             + add_objective_time.strftime("%H:%M:%S")
             + "("
-            + str(int((add_objective_time - add_max_popular_time).total_seconds() // 60))
+            + str(int((add_objective_time - add_max_sessions_per_group_constraint_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
@@ -234,20 +293,20 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             activitycounter = activitycounter + 1
             if activitycounter % 10 == 0:
                 print(a.id)
-                for activity_session in a.timeslots:
-                    # print("one activity session")
-                    # print (a.id, activity_session.id)
-                    selections = {
-                        s
-                        for s in self.assigning_activities_problem.selections
-                        if s.activity == a and s.time_slot == activity_session
-                    }
-                    self.model += xsum(s.group.size * x[s] for s in selections) <= activity_session.capacity
-                    # print (selections)
+            for activity_session in a.timeslots:
+                # print("one activity session")
+                # print (a.id, activity_session.id)
+                selections = {
+                    s
+                    for s in self.assigning_activities_problem.selections
+                    if s.activity == a and s.time_slot == activity_session
+                }
+                self.model += xsum(s.group.size * x[s] for s in selections) <= activity_session.capacity
+                # print (selections)
 
     # one group gets at most one session from any activity
     def add_max_1_session_constraint(self, x: dict[tuple, Var]) -> None:
-        print("add_max_1_session_constraint")
+        print("add_max_1_session_for_each_activity_constraint")
         grpcounter = 0
         for g in self.assigning_activities_problem.groups:
             grpcounter = grpcounter + 1
@@ -341,8 +400,8 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
 
     # find most popular activities and constrain to max_activities
     # another constraint will make sure at the most one session for one activity
-    def add_max_nb_of_most_popular_activities_constraint(self, x: dict[tuple, Var], max_activities: int) -> list[tuple]:
-        print("add_max_nb_of_most_popular_activities_constraint")
+    def add_max_nb_of_most_popular_activities_constraint(self, x: dict[tuple, Var]) -> list[tuple]:
+        print("add_max_nb_of_most_popular_activities_constraint - maxPopularActivities="+str(self.maxPopularActivities))
         grpcounter = 0
         for g in self.assigning_activities_problem.groups:
             grpcounter = grpcounter + 1
@@ -356,11 +415,67 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             # print (g.id)
             # print (selections)
             self.model += (
-                xsum(x[s] for s in selections) <= max_activities,
+                xsum(x[s] for s in selections) <= self.maxPopularActivities,
                 "group_" + g.id + "_at_most_1_popular_activity",
             )
+
+
+            
+    # one group must have one activity
+    def add_min_session_per_group_constraint(self, x: dict[tuple, Var]) -> None:
+        print("add_min_session_per_group_constraint - minSessionsPerGroup="+str(self.minSessionsPerGroup))
+        grpcounter = 0
+        for g in self.assigning_activities_problem.groups:
+            grpcounter = grpcounter + 1
+            if grpcounter % 25 == 0:
+                print(g.id)
+            selections = [
+                s for s in self.assigning_activities_problem.selections if s.group == g 
+            ]
+            self.model += (
+                xsum(x[s] for s in selections) >= self.minSessionsPerGroup,
+                "group_" + g.id + "_min_1_session" ,
+            )
+
+     
+    # one group must have one activity
+    def add_max_sessions_per_group_constraint(self, x: dict[tuple, Var]) -> None:
+        print("add_max_sessions_per_group_constraint - maxSessionsPerGroup="+str(self.maxSessionsPerGroup))
+        grpcounter = 0
+        for g in self.assigning_activities_problem.groups:
+            grpcounter = grpcounter + 1
+            if grpcounter % 25 == 0:
+                print(g.id)
+            selections = [
+                s for s in self.assigning_activities_problem.selections if s.group == g 
+            ]
+            self.model += (
+                xsum(x[s] for s in selections) <= self.maxSessionsPerGroup,
+                "group_" + g.id + "_min_1_session" ,
+            )
+
+
 
     # define the objective function
     def add_objective(self, x: dict[tuple, Var]) -> None:
         print("add objective")
         self.model.objective = maximize(xsum(s.priority * x[s] for s in self.assigning_activities_problem.selections))
+
+        
+    def to_dataframe(self):
+        columns = ["maxSessionsPerGroup", "maxSolveSeconds", "maxPopularActivities"]
+
+        data = [
+            [
+                self.maxSessionsPerGroup,
+                self.maxSolveSeconds,
+                self.maxPopularActivities
+            ]
+        ]
+        return pd.DataFrame(data=data, columns=columns)
+
+    def to_excel(self, filename: str, mode: str, sheet: str):
+        df = self.to_dataframe()
+        with pd.ExcelWriter(filename, mode=mode) as writer:
+            df.to_excel(writer, sheet_name=sheet,index=False)
+

@@ -161,6 +161,8 @@ class Selection(BaseModel):
     time_slot: ActivityTimeslot
     priority: int
     assigned: int
+    popular: int
+
 
     def __str__(self):
         return self.group.id + "_" + self.activity.id + "_" + self.time_slot.id
@@ -178,10 +180,10 @@ class AssigningActivititesProblem(BaseModel):
     groups: list[Group]
     selections: set[Selection]
     popularactivities: list[Activity]
-
+    
     @classmethod
     def from_json(cls, file_name: str) -> "AssigningActivititesProblem":
-        with open(file_name, "r") as file:
+        with open(file_name, "r", encoding="utf-8") as file:
             data = json.load(file)
 
    
@@ -241,6 +243,10 @@ class AssigningActivititesProblem(BaseModel):
 
         for group in list_groups:
             for activity in list_activities:
+                if activity.id in top_activities:
+                    setpop = 1
+                else:
+                    setpop = 0  
                 if group.id + activity.id in priorities:
                     for time_slot in activity.timeslots:
                         selections.append(
@@ -250,22 +256,15 @@ class AssigningActivititesProblem(BaseModel):
                                 time_slot=time_slot,
                                 priority=priorities[group.id + activity.id],
                                 assigned=0,
+                                popular=setpop
                             )
                         )
 
         data["selections"] = selections
 
-        if "debug" == "nodebug":
-            print("printing groups")
-            print(data["groups"])
+        maxSessionsPerGroup = 1
 
-            print("printing activities")
-            print(data["activities"])
 
-            print("printing selections")
-            # print (data["selections"])
-            for s in data["selections"]:
-                print(s)
         return cls(**data)
 
 
@@ -282,7 +281,7 @@ class AssigningActivititesProblem(BaseModel):
         return pd.DataFrame(data=data, columns=columns)
 
     def get_session_info(self) :
-        columns = ["Sessionid", "Start","End","Capacity","ActivityArea","Activityid"]
+        columns = ["Sessionid", "Start","End","Capacity","ActivityArea","Activityid","Name"]
         data = [
             [
                 t.id,
@@ -290,13 +289,26 @@ class AssigningActivititesProblem(BaseModel):
                 t.real_end.replace(tzinfo=None),
                 t.capacity,
                 a.activity_area,
-                a.id
+                a.id,
+                a.name
             ]
             for a in self.activities for t in a.timeslots
         ]
             
         return pd.DataFrame(data=data, columns=columns)
 
+    def get_popular_info(self) :
+        columns = ["ActivityArea","Activityid","Name"]
+        data = [
+            [
+                a.activity_area,
+                a.id,
+                a.name
+            ]
+            for a in self.popularactivities 
+        ]
+            
+        return pd.DataFrame(data=data, columns=columns)
 
     def write_base_info(self, path: str):
         df = self.get_group_info()
@@ -305,6 +317,9 @@ class AssigningActivititesProblem(BaseModel):
         df1 = self.get_session_info()
         df1.sort_values(by=["Sessionid"], inplace=True)
         df1.to_excel(path+'session_info.xlsx', index=False)
+        df2 = self.get_popular_info()
+        df2.sort_values(by=["Activityid"], inplace=True)
+        df2.to_excel(path+'popular_info.xlsx', index=False)
 
     def get_popular_activities(self) -> list[Activity]:
         return {a for a in self.popularactivities}
@@ -377,7 +392,7 @@ class Solution(BaseModel):
         return len(self.selections) > 0
 
     def to_dataframe(self):
-        columns = ["Group", "Activity", "Timeslot", "Start", "End", "Location", "Priority", "PriorityValue", "Assigned"]
+        columns = ["Group", "Activity", "Timeslot", "Start", "End", "Location", "Priority", "PriorityValue", "Assigned","ActivityArea"]
 
         data = [
             [
@@ -390,6 +405,7 @@ class Solution(BaseModel):
                 21 - s.priority,
                 s.priority,
                 s.assigned,
+                s.activity.activity_area
             ]
             for s in self.selections
         ]
@@ -398,15 +414,16 @@ class Solution(BaseModel):
     def to_excel(self, filename: str):
         df = self.to_dataframe()
         df.sort_values(by=["Group", "Start"], inplace=True)
-        df.to_excel(filename, index=False)
+        df.to_excel(filename, sheet_name="solution", index=False)
 
     def to_visualization_dataframe(self):
-        columns = ["Group", "Activity", "Timeslot", "Start", "End", "Location", "Priority", "PriorityValue", "Assigned"]
+        columns = ["gid", "aid", "name","sid", "Start", "End", "ActivityArea", "Priority", "objvalue", "Assigned","Capacity","Size","PopularActivity"]
 
         data = [
             [
                 s.group.id,
                 s.activity.id,
+                s.activity.name,
                 s.time_slot.id,
                 s.time_slot.start.replace(tzinfo=None),
                 s.time_slot.real_end.replace(tzinfo=None),
@@ -414,6 +431,11 @@ class Solution(BaseModel):
                 21 - s.priority,
                 s.priority,
                 s.assigned,
+                s.time_slot.capacity,
+                s.group.size,
+                s.popular
+                
+                
             ]
             for s in self.allvars
         ]
@@ -421,8 +443,8 @@ class Solution(BaseModel):
 
     def to_visualization_excel(self, filename: str):
         df = self.to_visualization_dataframe()
-        df.sort_values(by=["Group", "Start"], inplace=True)
-        df.to_excel(filename, index=False)
+        df.sort_values(by=["gid", "Start"], inplace=True)
+        df.to_excel(filename, sheet_name="solution", index=False)
         # df.append_df_to_excel(filename, df, header=None, index=False)
 
     def create_gantt_chart(self) -> None:

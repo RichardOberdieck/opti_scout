@@ -5,7 +5,7 @@ from mip import OptimizationStatus, Var
 
 from datetime import datetime, timedelta
 from collections import Counter
-
+import heapq
 
 class age_span(BaseModel):
     low: int
@@ -107,6 +107,7 @@ class Activity(BaseModel):
     name: str
     age_span: age_span
     timeslots: set[ActivityTimeslot]
+    leaders_can_participate: bool
     activity_area: str
     in_camp: bool
 
@@ -136,6 +137,7 @@ class Activity(BaseModel):
 class Group(BaseModel):
     id: str
     size: int
+    size_without_leaders: int
     age_span: age_span
     available: set[Timeslot]
 
@@ -180,7 +182,9 @@ class AssigningActivititesProblem(BaseModel):
     groups: list[Group]
     selections: set[Selection]
     popularactivities: list[Activity]
-    
+    grpswithoutselections: int
+    activitieswithoutsesessions: int
+
     @classmethod
     def from_json(cls, file_name: str) -> "AssigningActivititesProblem":
         with open(file_name, "r", encoding="utf-8") as file:
@@ -211,9 +215,11 @@ class AssigningActivititesProblem(BaseModel):
         for i in data["activities"]:
             acts[i["id"]] = i
 
+
         # Create named directory of priorities, which are selected activities for each group
         priorities = {}
         popular = []
+        grpwithout=0
         for g in data["groups"]:
             # start with priority 20 for each group
             priocounter = 20
@@ -221,6 +227,11 @@ class AssigningActivititesProblem(BaseModel):
                 priorities[g["id"] + a] = priocounter
                 priocounter = priocounter - 1
                 popular.append(a)
+            if len(g["priorities"]) == 0:
+                grpwithout=grpwithout+1   
+        
+        data["grpswithoutselections"] = grpwithout
+        
 
         # we could extend this to include ties
         # add nb most common as input to function from_json
@@ -228,15 +239,61 @@ class AssigningActivititesProblem(BaseModel):
 
         top_activities = [item for item, count in most_common]
 
+
+
+
         list_activities = list_activities_adapter.validate_python(data["activities"])
         list_groups = list_group_adapter.validate_python(data["groups"])
 
-        toppop = []
+
+
+
+        #find the top activities based on totel capacity (#seats)/total priorities (#scouts)
+        #count total capacity
+        totalcapacity = {}
+        totalrequests = {}
         for a in list_activities:
-            if a.id in top_activities:
-                toppop.append(a)
+            if a.id not in totalcapacity:
+                totalcapacity[a.id]=0
+                totalrequests[a.id]=0
+            for t in a.timeslots:
+              totalcapacity[a.id] += t.capacity
+
+        for group in list_groups:
+            for activity in list_activities:
+                if group.id + activity.id in priorities:
+                    totalrequests[activity.id] += group.size
+            
+        activityCapacityToScoutRatio={}
+        for a in list_activities:
+            if totalcapacity[a.id] > 0 and totalrequests[a.id] > 0 :
+                activityCapacityToScoutRatio[a.id] = totalrequests[a.id]/totalcapacity[a.id]
+        #non_zeros_activityCapacityToScoutRatio = {k: v for k, v in activityCapacityToScoutRatio.items() if v != 0}
+
+        print(activityCapacityToScoutRatio)    
+
+        tmp = {k: v for (k, v) in activityCapacityToScoutRatio.items() if v < 0.02}
+        ratio_list = list(tmp.keys())
+        print (ratio_list)
+
+        #what defines a popular activity
+        popmethod = "capacityratio"
+        toppop = []
+        if popmethod == "groupcount":
+            for a in list_activities:
+                if a.id in top_activities:
+                    toppop.append(a)
+        if popmethod == "capacityratio":
+            for a in list_activities:
+                if a.id in ratio_list:
+                    toppop.append(a)
+
+
+
 
         data["popularactivities"] = toppop
+
+
 
         # Create named directory of selections, selections are actual sessions for each of the activities that groups have prioritized == variables in the model
         selections = []
@@ -249,39 +306,61 @@ class AssigningActivititesProblem(BaseModel):
                     setpop = 0  
                 if group.id + activity.id in priorities:
                     for time_slot in activity.timeslots:
-                        selections.append(
-                            Selection(
-                                group=group,
-                                activity=activity,
-                                time_slot=time_slot,
-                                priority=priorities[group.id + activity.id],
-                                assigned=0,
-                                popular=setpop
+                        #only add if session is actually in groups available timeslots
+                        if group.in_available_timeslots(time_slot) :
+                            selections.append(
+                                Selection(
+                                    group=group,
+                                    activity=activity,
+                                    time_slot=time_slot,
+                                    priority=priorities[group.id + activity.id],
+                                    assigned=0,
+                                    popular=setpop
+                                )
                             )
-                        )
 
         data["selections"] = selections
 
         maxSessionsPerGroup = 1
+       
+        actwithout=0
+        for a in list_activities:
+            if len(a.timeslots) == 0:
+                actwithout=actwithout+1 
+        
+        data["activitieswithoutsesessions"] = actwithout
+    
+        
 
 
         return cls(**data)
 
 
+
+    def count_sessions(self) :
+        sessioncounter = 0 
+        for a in self.activities:
+            for t in a.timeslots:
+              sessioncounter = sessioncounter+1
+            
+        return sessioncounter 
+
     def get_group_info(self) :
-        columns = ["GroupID", "Size"]
+        columns = ["GroupID", "Size","Size_without_leaders"]
 
         data = [
             [
                 g.id,
-                g.size
+                g.size,
+                g.size_without_leaders
             ]
             for g in self.groups
         ]
         return pd.DataFrame(data=data, columns=columns)
 
+
     def get_session_info(self) :
-        columns = ["Sessionid", "Start","End","Capacity","ActivityArea","Activityid","Name"]
+        columns = ["Sessionid", "Start","End","Capacity","ActivityArea","Activityid","Name","leaders_can_participate"]
         data = [
             [
                 t.id,
@@ -290,7 +369,8 @@ class AssigningActivititesProblem(BaseModel):
                 t.capacity,
                 a.activity_area,
                 a.id,
-                a.name
+                a.name,
+                a.leaders_can_participate
             ]
             for a in self.activities for t in a.timeslots
         ]
@@ -310,6 +390,24 @@ class AssigningActivititesProblem(BaseModel):
             
         return pd.DataFrame(data=data, columns=columns)
 
+
+    def get_selection_info(self) :
+        columns = ["Group","Activity","time_slot","priority","assigned","popular"]
+        data = [
+            [
+                s.group,
+                s.activity,
+                s.time_slot.id,
+                s.priority,
+                s.assigned,
+                s.popular
+            ]
+            for s in self.selections 
+        ]
+            
+        return pd.DataFrame(data=data, columns=columns)
+
+
     def write_base_info(self, path: str):
         df = self.get_group_info()
         df.sort_values(by=["GroupID"], inplace=True)
@@ -320,6 +418,9 @@ class AssigningActivititesProblem(BaseModel):
         df2 = self.get_popular_info()
         df2.sort_values(by=["Activityid"], inplace=True)
         df2.to_excel(path+'popular_info.xlsx', index=False)
+        df3 = self.get_selection_info()
+        df3.to_excel(path+'selections.xlsx', index=False)
+        print("Baseinfo written")
 
     def get_popular_activities(self) -> list[Activity]:
         return {a for a in self.popularactivities}
@@ -417,7 +518,7 @@ class Solution(BaseModel):
         df.to_excel(filename, sheet_name="solution", index=False)
 
     def to_visualization_dataframe(self):
-        columns = ["gid", "aid", "name","sid", "Start", "End", "ActivityArea", "Priority", "objvalue", "Assigned","Capacity","Size","PopularActivity"]
+        columns = ["gid", "aid", "name","sid", "Start", "End", "ActivityArea", "Priority", "objvalue", "Assigned","Capacity","Size","Size_without_leaders","PopularActivity","leaders_can_participate"]
 
         data = [
             [
@@ -433,7 +534,9 @@ class Solution(BaseModel):
                 s.assigned,
                 s.time_slot.capacity,
                 s.group.size,
-                s.popular
+                s.group.size_without_leaders,
+                s.popular,
+                s.activity.leaders_can_participate
                 
                 
             ]

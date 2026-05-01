@@ -29,12 +29,16 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
 
         x = self.generate_variables()
 
+        print("Time:" + datetime.datetime.now().strftime("%H:%M:%S"))
         print("filename: " + filename)
         print("#Activities: " + str(len(self.assigning_activities_problem.activities)))
+        print("#Activities without sessions: " + str(self.assigning_activities_problem.activitieswithoutsesessions))
+        print("#Sessions: " + str(self.assigning_activities_problem.count_sessions()))
         print("#Groups: " + str(len(self.assigning_activities_problem.groups)))
+        print("#Groups without priorities: " + str(self.assigning_activities_problem.grpswithoutselections))
         print("#selections: " + str(len(self.assigning_activities_problem.selections)))
         time.sleep(5)
-        nbsteps=10
+        nbsteps=11
         actualstep=1
         starttime = datetime.datetime.now()
         print("add_maxscout_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
@@ -45,16 +49,18 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
         self.add_max_1_session_constraint(x)
         addmax_1_session_time = datetime.datetime.now()
         actualstep=actualstep+1
-        print("add_max_1_of_overlapping_sessions_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
-        self.add_max_1_of_overlapping_sessions_constraint(x)
-        addmax_1_overlapping_time = datetime.datetime.now()
+        print("add_no_overlapping_sessions_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
+        self.add_no_overlapping_sessions_constraint(x)
+        add_no_overlapping_time = datetime.datetime.now()
         actualstep=actualstep+1
         print("add_unavailable_time_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
-        self.add_unavailable_time_constraint(x)
+        print("DISABLED as selections are only at valid times")
+        #self.add_unavailable_time_constraint(x)
         add_unavailable_time = datetime.datetime.now()
         actualstep=actualstep+1
         print("add_onlyone_activitylocation_eachday_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
-        self.add_onlyone_activitylocation_eachday_constraint(x)
+        print("DISABLED as we have the max one out of camp")
+        #self.add_onlyone_activitylocation_eachday_constraint(x)
         add_location_eachday_time = datetime.datetime.now()
         actualstep=actualstep+1
         print("add_age_constraint ("+str(actualstep)+"/"+str(nbsteps)+")")
@@ -74,6 +80,10 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
         self.add_max_sessions_per_group_constraint(x)
         add_max_sessions_per_group_constraint_time = datetime.datetime.now()
         actualstep=actualstep+1
+        print("add_at_most_1_activity_out_of_camp ("+str(actualstep)+"/"+str(nbsteps)+")")
+        self.add_at_most_1_activity_out_of_camp(x)
+        add_at_most_1_activity_out_of_camp_time= datetime.datetime.now()
+        actualstep=actualstep+1
         print("add_objective ("+str(actualstep)+"/"+str(nbsteps)+")")
         self.add_objective(x)
         add_objective_time = datetime.datetime.now()
@@ -81,6 +91,8 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
 
         print("filename: " + filename)
         print("#Activities: " + str(len(self.assigning_activities_problem.activities)))
+        print("#Sessions: " + str(self.assigning_activities_problem.count_sessions()))
+
         print("#Groups: " + str(len(self.assigning_activities_problem.groups)))
         print("#selections: " + str(len(self.assigning_activities_problem.selections)))
 
@@ -103,17 +115,17 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             + " minutes)"
         )
         print(
-            "addmax_1_overlapping_time: "
-            + addmax_1_overlapping_time.strftime("%H:%M:%S")
+            "add_no_overlapping_time: "
+            + add_no_overlapping_time.strftime("%H:%M:%S")
             + "("
-            + str(int((addmax_1_overlapping_time - addmax_scout_time).total_seconds() // 60))
+            + str(int((add_no_overlapping_time - addmax_scout_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
             "add_unavailable_time: "
             + add_unavailable_time.strftime("%H:%M:%S")
             + "("
-            + str(int((add_unavailable_time - addmax_1_overlapping_time).total_seconds() // 60))
+            + str(int((add_unavailable_time - add_no_overlapping_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
@@ -153,10 +165,18 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
         )
         
         print(
+            "add_at_most_1_activity_out_of_camp_time: "
+            + add_at_most_1_activity_out_of_camp_time.strftime("%H:%M:%S")
+            + "("
+            + str(int((add_at_most_1_activity_out_of_camp_time - add_max_sessions_per_group_constraint_time).total_seconds() // 60))
+            + " minutes)"
+        )
+        
+        print(
             "add_objective_time: "
             + add_objective_time.strftime("%H:%M:%S")
             + "("
-            + str(int((add_objective_time - add_max_sessions_per_group_constraint_time).total_seconds() // 60))
+            + str(int((add_objective_time - add_at_most_1_activity_out_of_camp_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
@@ -175,18 +195,26 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             + " minutes)"
         )
 
+        modelfilename =filename + ".mps"
+        print("Writing model to: " + modelfilename )
+        self.model.write(modelfilename)
+        
+        print("Time:" + datetime.datetime.now().strftime("%H:%M:%S"))
+        
+
         print("preproces")
         print(self.model.preprocess)
         # print("set preproces to 0")
         # self.model.preprocess=0
 
-        self.model.write(filename + ".mps")
-
         status = self.model.optimize(max_seconds=self.maxSolveSeconds)
         endtime = datetime.datetime.now()
 
         print("#Activities: " + str(len(self.assigning_activities_problem.activities)))
+        print("#Activities without sessions: " + str(self.assigning_activities_problem.activitieswithoutsesessions))
+        print("#Sessions: " + str(self.assigning_activities_problem.count_sessions()))
         print("#Groups: " + str(len(self.assigning_activities_problem.groups)))
+        print("#Groups without priorities: " + str(self.assigning_activities_problem.grpswithoutselections))
         print("#selections: " + str(len(self.assigning_activities_problem.selections)))
 
         print("starttime:" + starttime.strftime("%H:%M:%S"))
@@ -208,17 +236,17 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             + " minutes)"
         )
         print(
-            "addmax_1_overlapping_time: "
-            + addmax_1_overlapping_time.strftime("%H:%M:%S")
+            "add_no_overlapping_time: "
+            + add_no_overlapping_time.strftime("%H:%M:%S")
             + "("
-            + str(int((addmax_1_overlapping_time - addmax_scout_time).total_seconds() // 60))
+            + str(int((add_no_overlapping_time - addmax_scout_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
             "add_unavailable_time: "
             + add_unavailable_time.strftime("%H:%M:%S")
             + "("
-            + str(int((add_unavailable_time - addmax_1_overlapping_time).total_seconds() // 60))
+            + str(int((add_unavailable_time - add_no_overlapping_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
@@ -257,10 +285,18 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             + " minutes)"
         )        
         print(
+            "add_at_most_1_activity_out_of_camp_time: "
+            + add_at_most_1_activity_out_of_camp_time.strftime("%H:%M:%S")
+            + "("
+            + str(int((add_at_most_1_activity_out_of_camp_time - add_max_sessions_per_group_constraint_time).total_seconds() // 60))
+            + " minutes)"
+        )
+        
+        print(
             "add_objective_time: "
             + add_objective_time.strftime("%H:%M:%S")
             + "("
-            + str(int((add_objective_time - add_max_sessions_per_group_constraint_time).total_seconds() // 60))
+            + str(int((add_objective_time - add_at_most_1_activity_out_of_camp_time).total_seconds() // 60))
             + " minutes)"
         )
         print(
@@ -301,7 +337,11 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
                     for s in self.assigning_activities_problem.selections
                     if s.activity == a and s.time_slot == activity_session
                 }
-                self.model += xsum(s.group.size * x[s] for s in selections) <= activity_session.capacity
+                #if leaders can participate use the groupsize, otherwise use size without leaders 
+                if a.leaders_can_participate == True:
+                    self.model += xsum(s.group.size * x[s] for s in selections) <= activity_session.capacity
+                else:    
+                    self.model += xsum(s.group.size_without_leaders * x[s] for s in selections) <= activity_session.capacity
                 # print (selections)
 
     # one group gets at most one session from any activity
@@ -324,8 +364,8 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
                 )
 
     # any group can at most have 1 session of overlapping sessions across all activities that they have prioritized
-    def add_max_1_of_overlapping_sessions_constraint(self, x: dict[tuple, Var]) -> None:
-        print("add_max_1_of_overlapping_sessions_constraint")
+    def add_no_overlapping_sessions_constraint(self, x: dict[tuple, Var]) -> None:
+        print("add_no_overlapping_sessions_constraint")
         sessioncounter = 0
         for s in self.assigning_activities_problem.selections:
             sessioncounter = sessioncounter + 1
@@ -372,6 +412,27 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
                     x[s] + x[s1] <= 1,
                     f"{s}_and_{s1}_excluded_because_different_location_same_day_{s.activity}",
                 )
+
+    #def add_max_nb_of_most_popular_activities_constraint(self, x: dict[tuple, Var]) -> list[tuple]:
+    def add_at_most_1_activity_out_of_camp(self, x: dict[tuple, Var]) -> None:
+        print("add_at_most_1_activity_out_of_camp")
+        grpcounter = 0
+        for g in self.assigning_activities_problem.groups:
+            grpcounter = grpcounter + 1
+            if grpcounter % 25 == 0:
+                print(g.id)
+            selections = [
+                s
+                for s in self.assigning_activities_problem.selections
+                if s.group == g and s.activity.in_camp == False
+            ]
+            # print (g.id)
+            # print (selections)
+            self.model += (
+                xsum(x[s] for s in selections) <= 1,
+                "group_" + g.id + "_at_most_1_activity_out_of_camp",
+            )
+        
 
     # find all activities where age does not match and force these to zero
     # this should not happen for any, as data is supposed to be cleaned, keep it as a check
@@ -433,12 +494,13 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
                 s for s in self.assigning_activities_problem.selections if s.group == g 
             ]
             self.model += (
-                xsum(x[s] for s in selections) >= self.minSessionsPerGroup,
-                "group_" + g.id + "_min_1_session" ,
+                xsum(x[s] for s in selections) >=  self.minSessionsPerGroup,
+                "group_" + g.id + "_min_sessions" ,
             )
 
+                
      
-    # one group must have one activity
+    # one group must have atmost Y activities
     def add_max_sessions_per_group_constraint(self, x: dict[tuple, Var]) -> None:
         print("add_max_sessions_per_group_constraint - maxSessionsPerGroup="+str(self.maxSessionsPerGroup))
         grpcounter = 0
@@ -451,7 +513,7 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
             ]
             self.model += (
                 xsum(x[s] for s in selections) <= self.maxSessionsPerGroup,
-                "group_" + g.id + "_min_1_session" ,
+                "group_" + g.id + "_max_sessions" ,
             )
 
 
@@ -463,10 +525,11 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
 
         
     def to_dataframe(self):
-        columns = ["maxSessionsPerGroup", "maxSolveSeconds", "maxPopularActivities"]
+        columns = ["minSessionsPerGroup","maxSessionsPerGroup", "maxSolveSeconds", "maxPopularActivities"]
 
         data = [
             [
+                self.minSessionsPerGroup,
                 self.maxSessionsPerGroup,
                 self.maxSolveSeconds,
                 self.maxPopularActivities
@@ -476,6 +539,6 @@ class ModelBuilder(BaseModel, arbitrary_types_allowed=True):
 
     def to_excel(self, filename: str, mode: str, sheet: str):
         df = self.to_dataframe()
-        with pd.ExcelWriter(filename, mode=mode) as writer:
-            df.to_excel(writer, sheet_name=sheet,index=False)
-
+        #append_df_to_excel(filename, df, sheet_name='properties', index=False)
+        with pd.ExcelWriter(filename, engine='openpyxl', mode=mode) as writer:
+            df.to_excel(writer,  sheet_name=sheet,index=False)

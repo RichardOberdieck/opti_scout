@@ -12,18 +12,24 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 currpath=os.getcwd()
 print ("we are now in: ",currpath)
-#filename="20260218response_small"
-filename="20260218response"
-optionalSuffix="max10"
-modelrunsecs=1200
-maxsessions=10
-minsessions=1
-maxpopular=2 
+#filename ="newtest"
+#filename="20260218response"
+#filename ="20260428response"
+filename="20260429response"
+modelrunsecs=3600
+maxsessions=1
+minsessions=0
+maxpopular=1
+
+optionalSuffix="_mi"+str(minsessions)+"mx"+str(maxsessions)+"po"+str(maxpopular)
+#optionalSuffix=""
+
 assign_activity_problem =  AssigningActivititesProblem.from_json("../opti_scout/tests/data/"+filename+".json")
 
 assign_activity_problem.write_base_info('../opti_scout/tests/output/')
 
 resultname="../opti_scout/tests/output/"+filename+optionalSuffix+".xlsx"
+modelfilename="../opti_scout/tests/modelfiles/"+filename+optionalSuffix
 resultname_all="../opti_scout/tests/output/"+filename+optionalSuffix+"_all.xlsx"
 resultname_prop="../opti_scout/tests/output/"+filename+optionalSuffix+"_properties.xlsx"
 
@@ -36,19 +42,21 @@ print ("Most Popular activities")
 for a in popact:
     print (a.id)
 
+model_builder.minSessionsPerGroup = minsessions
 model_builder.maxSessionsPerGroup = maxsessions
 model_builder.maxSolveSeconds=modelrunsecs
 model_builder.maxPopularActivities=maxpopular
 
-solution = model_builder.solve( filename="../opti_scout/tests/modelfiles/"+filename)
+solution = model_builder.solve( filename=modelfilename)
 
 
 print("Input filename:" +filename)
+print("resultname:" +resultname)
 
 solution.to_excel(resultname)
 solution.to_visualization_excel(resultname_all)
 #add model properties to solution excel workbook
-model_builder.to_excel(resultname,mode="a",sheet="properties")
+model_builder.to_excel(resultname,  mode="a",sheet="properties")
 model_builder.to_excel(resultname_all,mode="a",sheet="properties")
 
 #todo
